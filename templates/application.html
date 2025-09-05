@@ -1,0 +1,89 @@
+{{ define "application.tmpl" }}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали заявки</title>
+    <link rel="stylesheet" href="/resources/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img class="vector" src="/resources/img/vector.svg" alt="Company Logo" width="100" height="60" />
+            </div>
+            <a href="/" class="icon">
+                <img src="/resources/img/icons.svg" alt="User menu icons" width="30" height="30" />
+            </a>
+        </div>
+
+        <div class="search-section">
+            <div class="current-request">
+                <div class="request-title">Текущая заявка</div>
+                <div class="request-subtitle">Стоимость {{printf "%.2f" .application.Price}} ₽</div>
+            </div>
+        </div>
+
+        <div class="details-section">
+            {{range .application.OrdersList}}
+            <div class="order-card">
+                <div class="service-card">
+                    {{if eq .TariffId 1}}
+                    <div class="service-content">
+                        <div class="service-title">Медленный тариф<br>в выходные</div>
+                        <div class="service-description">Зарядка 1 уровня</div>
+                        <a href="/tariff/{{.TariffId}}" class="details-btn btn-hover">Подробнее</a>
+                    </div>
+                    <img class="service-image" src="/resources/img/image.png" alt="Услуга">
+                    {{else}}
+                    <div class="service-content">
+                        <div class="service-title">Медленный тариф<br>в будни</div>
+                        <div class="service-description">Зарядка 1 уровня</div>
+                        <a href="/tariff/{{.TariffId}}" class="details-btn btn-hover">Подробнее</a>
+                    </div>
+                    <img class="service-image" src="/resources/img/image.png" alt="Услуга">
+                    {{end}}
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-row">
+                        <div class="detail-input">
+                            <div class="detail-field">{{printf "%.1f" .BatteryCapacity}}</div>
+                        </div>
+                        <div class="detail-label">Объем батареи</div>
+                        <div class="time-section">
+                            <div class="time-display">{{.StartTime.Format "15:04"}}</div>
+                            <div class="time-label">Время начала</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-input">
+                            <div class="detail-field">{{.CurrentPercent}}%</div>
+                        </div>
+                        <div class="detail-label">Уровень заряда</div>
+                        <div class="cost-section">
+                            <div class="cost-display">{{printf "%.2f" .OrderPrice}} ₽</div>
+                            <div class="cost-label">Стоимость</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-item">RIP © 2025</div>
+                <div class="footer-item">Контакты</div>
+                <div class="footer-item">Новости</div>
+                <div class="footer-item">Расположение</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+{{ end }}

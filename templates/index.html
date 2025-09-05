@@ -1,0 +1,66 @@
+{{ define "index.tmpl" }}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница</title>
+    <link rel="stylesheet" href="/resources/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img class="vector" src="/resources/img/vector.svg" alt="Company Logo" width="100" height="60" />
+            </div>
+            <a href="/" class="icon">
+                <img src="/resources/img/icons.svg" alt="User menu icons" width="30" height="30" />
+            </a>
+        </div>
+
+        <div class="search-section">
+            <form action="/search" method="GET" class="search-container">
+                <div class="search-input">
+                    <input type="text" name="q" class="search-field" placeholder="Поиск..." value="{{.searchQuery}}">
+                </div>
+                <button type="submit" class="search-btn btn-hover">Найти</button>
+            </form>
+            {{if .application}}
+            <a href="/application/1" class="current-request">
+                <div class="request-title">Текущая заявка</div>
+                <div class="request-subtitle">{{.application.AmountOfOrders}} услуги</div>
+            </a>
+            {{else}}
+            <div class="current-request">
+                <div class="request-title">Текущая ызаявка</div>
+                <div class="request-subtitle">Нет активных заявок</div>
+            </div>
+            {{end}}
+        </div>
+
+        <div class="services-section">
+            {{range .tariffs}}
+            <div class="service-card">
+                <div class="service-content">
+                    <div class="service-title">{{.NameofTariff}}</div>
+                    <div class="service-description">{{.Description}}</div>
+                    <a href="/tariff/{{.Id}}" class="details-btn btn-hover">Подробнее</a>
+                </div>
+                <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
+            </div>
+            {{end}}
+        </div>
+
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-item">RIP © 2025</div>
+                <div class="footer-item">Контакты</div>
+                <div class="footer-item">Новости</div>
+                <div class="footer-item">Расположение</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+{{ end }}
