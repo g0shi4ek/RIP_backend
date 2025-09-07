@@ -3,34 +3,38 @@ package domain
 import (
 	"time"
 )
-type ChargingOrder struct{
-	Id int
-	TariffId int 
+
+// M-M
+type ChargingOrder struct {
+	Id              int
+	TariffId        int
+	ApplicationId   int
 	BatteryCapacity float32
-	CurrentPercent int
-	StartTime time.Time // if night => price > 
-	OrderPrice float32 
-	CreatedAt time.Time
-	Deleted bool
+	CurrentPercent  int
+	StartTime       time.Time // if night => price >
+	OrderPrice      float32
+	CreatedAt       time.Time
+	IsDeleted       bool
 }
 
+// Service
 type ChargingTariff struct {
-	Id int
+	Id           int
 	NameofTariff string
-	Description string
-	ImageUrl string
+	Description  string
+	ImageUrl     string
 	PricePerHour float32
-	Power float32
-	CreatedAt time.Time
-	Deleted bool
+	Power        float32
+	CreatedAt    time.Time
+	IsDeleted    bool
 }
 
-type ChargingApplication struct{
-	Id int
-	Price float32
+// Application
+type ChargingApplication struct {
+	Id             int
+	Price          float32
 	AmountOfOrders int
-	OrdersList *[]ChargingOrder
-	Status int // 1 - что-то добавлено, 0 - обработана
-	CreatedAt time.Time
-	Deleted bool
+	Status         string
+	CreatedAt      time.Time
+	IsDeleted      bool
 }

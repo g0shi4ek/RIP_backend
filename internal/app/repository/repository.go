@@ -20,8 +20,8 @@ func (r *ChargingRepository) GetTariffById(ctx context.Context, id int) (*domain
 
 	var targetTariff domain.ChargingTariff
 	tariffList, _ := r.GetAllTariffs(ctx)
-	for _, tariff  := range *tariffList{
-		if tariff.Id == id{
+	for _, tariff := range *tariffList {
+		if tariff.Id == id {
 			targetTariff = tariff
 		}
 	}
@@ -29,106 +29,101 @@ func (r *ChargingRepository) GetTariffById(ctx context.Context, id int) (*domain
 	return &targetTariff, nil
 }
 
-func (r *ChargingRepository) GetChargingApplicationById(ctx context.Context, id int) (*domain.ChargingApplication, error){
-	orders := []domain.ChargingOrder{
-        {
-            Id:              1,
-            TariffId:        1,
-            BatteryCapacity: 75.5,
-            CurrentPercent:  45,
-            StartTime:       time.Now(),
-            OrderPrice:      1500.0,
-            CreatedAt:       time.Now(),
-            Deleted:         false,
-        },
-        {
-            Id:              2,
-            TariffId:        2,
-            BatteryCapacity: 60.0,
-            CurrentPercent:  30,
-            StartTime:       time.Now(),
-            OrderPrice:      1200.0,
-            CreatedAt:       time.Now().Add(-2 * time.Hour),
-            Deleted:         false,
-        },
-    }
-
+func (r *ChargingRepository) GetChargingApplicationById(ctx context.Context, id int) (*domain.ChargingApplication, error) {
 	application := domain.ChargingApplication{
-        Id:            1,
-        Price:         5400.3,
-        AmountOfOrders: 2,
-        OrdersList:    &orders,
-        Status:        1,
-        CreatedAt:     time.Now(),
-        Deleted:       false,
-    }
+		Id:             1,
+		Price:          5400.3,
+		AmountOfOrders: 2,
+		Status:         "draft",
+		CreatedAt:      time.Now(),
+		IsDeleted:      false,
+	}
 
 	return &application, nil
 }
 
-func (r *ChargingRepository) GetAllTariffs(ctx context.Context) (*[]domain.ChargingTariff, error){
+func (r *ChargingRepository) GetAllTariffs(ctx context.Context) (*[]domain.ChargingTariff, error) {
 	tariffsList := []domain.ChargingTariff{
 		{
 			Id:           1,
-			NameofTariff: "Быстрый тариф в будни",
-			Description:  "Зарядка уровня 1",
-			ImageUrl:     "/resources/img/image.png",
-			PricePerHour: 5.0,
-			Power:        17.6,
+			NameofTariff: "Быстрая зарядка DC (будни)",
+			Description:  "Зарядка постоянным током 50-150 кВт",
+			ImageUrl:     "http://127.0.0.1:9000/charging-images/image.png",
+			PricePerHour: 12.0,  // цена за кВт*ч
+			Power:        150.0, // кВт
 			CreatedAt:    time.Now(),
-			Deleted:      false,
+			IsDeleted:    false,
 		},
 		{
 			Id:           2,
-			NameofTariff: "Быстрый тариф в выходные",
-			Description:  "Зарядка уровня 1",
-			ImageUrl:     "/resources/img/image.png",
-			PricePerHour: 6.0,
-			Power:        17.6,
+			NameofTariff: "Быстрая зарядка DC (выходные)",
+			Description:  "Зарядка постоянным током 50-150 кВт",
+			ImageUrl:     "http://127.0.0.1:9000/charging-images/image.png",
+			PricePerHour: 15.0,  // цена за кВт*ч
+			Power:        150.0, // кВт
 			CreatedAt:    time.Now(),
-			Deleted:      false,
+			IsDeleted:    false,
 		},
 		{
 			Id:           3,
-			NameofTariff: "Медленный тариф в будни",
-			Description:  "Зарядка уровня 2",
-			ImageUrl:     "/resources/img/image.png",
-			PricePerHour: 6.0,
-			Power:        10.1,
+			NameofTariff: "AC зарядка Level 2 (будни)",
+			Description:  "Зарядка переменным током 22 кВт",
+			ImageUrl:     "http://127.0.0.1:9000/charging-images/image.png",
+			PricePerHour: 8.0,  // цена за кВт*ч
+			Power:        22.0, // кВт
 			CreatedAt:    time.Now(),
-			Deleted:      false,
+			IsDeleted:    false,
 		},
 		{
 			Id:           4,
-			NameofTariff: "Медленный тариф в выходные",
-			Description:  "Зарядка уровня 2",
-			ImageUrl:     "/resources/img/image.png",
-			PricePerHour: 6.0,
-			Power:        10.1,
+			NameofTariff: "AC зарядка Level 2 (выходные)",
+			Description:  "Зарядка переменным током 22 кВт",
+			ImageUrl:     "http://127.0.0.1:9000/charging-images/image.png",
+			PricePerHour: 10.0, // цена за кВт*ч
+			Power:        22.0, // кВт
 			CreatedAt:    time.Now(),
-			Deleted:      false,
+			IsDeleted:    false,
 		},
-    }
-	
-	if len(tariffsList) == 0{
+		{
+			Id:           5,
+			NameofTariff: "Медленная зарядка Level 1",
+			Description:  "Домашняя зарядка 3.7-7.4 кВт",
+			ImageUrl:     "http://127.0.0.1:9000/charging-images/image.png",
+			PricePerHour: 5.0, // цена за кВт*ч
+			Power:        7.4, // кВт
+			CreatedAt:    time.Now(),
+			IsDeleted:    false,
+		},
+		{
+			Id:           6,
+			NameofTariff: "Ультрабыстрая зарядка DC",
+			Description:  "Зарядка 350 кВт (Tesla Supercharger)",
+			ImageUrl:     "http://127.0.0.1:9000/charging-images/image.png",
+			PricePerHour: 18.0,  // цена за кВт*ч
+			Power:        350.0, // кВт
+			CreatedAt:    time.Now(),
+			IsDeleted:    false,
+		},
+	}
+
+	if len(tariffsList) == 0 {
 		return nil, fmt.Errorf("there are no tariffs")
 	}
 	log.Println("tariffList founded")
 	return &tariffsList, nil
 }
 
-
-func (r *ChargingRepository) SearchTariffs(ctx context.Context, query string) (*[]domain.ChargingTariff, error) {
-    query = strings.ToLower(query)
-    var results []domain.ChargingTariff
+func (r *ChargingRepository) SearchTariffs(ctx context.Context, tariffQuery string) (*[]domain.ChargingTariff, error) {
+	tariffQuery = strings.ToLower(tariffQuery)
+	var results []domain.ChargingTariff
 	tariffs, _ := r.GetAllTariffs(ctx)
-	
-    for _, tariff := range *tariffs {
-        if strings.Contains(strings.ToLower(tariff.NameofTariff), query) ||
-           strings.Contains(strings.ToLower(tariff.Description), query) {
-            results = append(results, tariff)
-        }
-    }
-    
-    return &results, nil
+
+	for _, tariff := range *tariffs {
+		if strings.Contains(strings.ToLower(tariff.NameofTariff), tariffQuery) ||
+			strings.Contains(strings.ToLower(tariff.Description), tariffQuery) {
+			results = append(results, tariff)
+		}
+	}
+
+	return &results, nil
 }

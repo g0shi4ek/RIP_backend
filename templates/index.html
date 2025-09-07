@@ -12,17 +12,17 @@
     <div class="container">
         <div class="header">
             <div class="logo">
-                <img class="vector" src="/resources/img/vector.svg" alt="Company Logo" width="100" height="60" />
+                <img class="vector" src="http://127.0.0.1:9000/charging-images/vector.svg" alt="Company Logo" width="100" height="60" />
             </div>
             <a href="/" class="icon">
-                <img src="/resources/img/icons.svg" alt="User menu icons" width="30" height="30" />
+                <img src="http://127.0.0.1:9000/charging-images/icons.svg" alt="User menu icons" width="30" height="30" />
             </a>
         </div>
 
         <div class="search-section">
-            <form action="/search" method="GET" class="search-container">
+            <form action="/searchTariff" method="GET" class="search-container">
                 <div class="search-input">
-                    <input type="text" name="q" class="search-field" placeholder="Поиск..." value="{{.searchQuery}}">
+                    <input type="text" name="tariffName" class="search-field" placeholder="Поиск..." value="{{.searchTariff}}">
                 </div>
                 <button type="submit" class="search-btn btn-hover">Найти</button>
             </form>
@@ -45,6 +45,7 @@
                 <div class="service-content">
                     <div class="service-title">{{.NameofTariff}}</div>
                     <div class="service-description">{{.Description}}</div>
+                    <div class="service-price">{{.PricePerHour}} ₽/час</div>
                     <a href="/tariff/{{.Id}}" class="details-btn btn-hover">Подробнее</a>
                 </div>
                 <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
