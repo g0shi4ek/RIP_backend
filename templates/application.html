@@ -1,5 +1,3 @@
-{{ define "application.tmpl" }}
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -14,7 +12,7 @@
             <div class="logo">
                 <img class="vector" src="http://127.0.0.1:9000/charging-images/vector.svg" alt="Company Logo" width="100" height="60" />
             </div>
-            <a href="/" class="icon">
+            <a href="/tariffs" class="icon">
                 <img src="http://127.0.0.1:9000/charging-images/icons.svg" alt="User menu icons" width="30" height="30" />
             </a>
         </div>
@@ -22,47 +20,90 @@
         <div class="search-section">
             <div class="current-request">
                 <div class="request-title">Текущая заявка</div>
-                <div class="request-subtitle">Стоимость {{printf "%.2f" .application.Price}} ₽</div>
+                <div class="request-subtitle">Стоимость {{printf "%.2f" .application.TotalPrice}} ₽</div>
+                <form action="/application/{{.application.Id}}" method="POST" class="delete-form">
+                    <button type="submit" class="delete-btn btn-hover">
+                        Удалить заявку
+                    </button>
+                </form>
             </div>
         </div>
 
         <div class="details-section">
-            {{range .tariffs }}
-            <div class="order-card">
-                <div class="service-card">
-                    <div class="service-content">
-                        <div class="service-title">{{.NameofTariff}}</div>
-                        <div class="service-description">{{.Description}}</div>
-                        <div class="service-price">{{.PricePerHour}} ₽/час</div>
-                        <a href="/tariff/{{.Id}}" class="details-btn btn-hover">Подробнее</a>
+            {{if .orders}}
+                {{range .orders}}
+                <div class="order-card">
+                    <div class="service-card">
+                        <div class="service-content">
+                            <div class="service-title">{{.Tariff.NameofTariff}}</div>
+                            <div class="service-description">{{.Tariff.Description}}</div>
+                            <div class="service-price">{{.Tariff.PricePerHour}} ₽/час</div>
+                        </div>
+                        <img class="service-image" src="{{.Tariff.ImageUrl}}" alt="{{.Tariff.NameofTariff}}">
                     </div>
-                    <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
-                </div>
 
-                <div class="detail-card">
-                    <div class="detail-row">
-                        <div class="detail-input">
-                            <div class="detail-field">57.16</div>
+                    <div class="detail-card">
+                        <div class="detail-row">
+                            <div class="detail-input">
+                                <div class="detail-field">
+                                    {{if .BatteryCapacity}}
+                                        {{printf "%.2f" .BatteryCapacity}} кВт·ч
+                                    {{else}}
+                                        Не указано
+                                    {{end}}
+                                </div>
+                            </div>
+                            <div class="detail-label">Объем батареи</div>
+                            <div class="time-section">
+                                <div class="time-display">
+                                    {{if not .StartTime.IsZero}}
+                                        {{.StartTime.Format "15:04"}}
+                                    {{else}}
+                                        --
+                                    {{end}}
+                                </div>
+                                <div class="time-label">Время начала</div>
+                            </div>
                         </div>
-                        <div class="detail-label">Объем батареи</div>
-                        <div class="time-section">
-                            <div class="time-display">16:27</div>
-                            <div class="time-label">Время начала</div>
+                        
+                        <div class="detail-row">
+                            <div class="detail-input">
+                                <div class="detail-field">
+                                    {{if .CurrentPercent}}
+                                        {{.CurrentPercent}}%
+                                    {{else}}
+                                        Не указано
+                                    {{end}}
+                                </div>
+                            </div>
+                            <div class="detail-label">Уровень заряда</div>
+                            <div class="cost-section">
+                                <div class="cost-display">
+                                    {{if .CalculatedPrice}}
+                                        {{printf "%.2f" .CalculatedPrice}} ₽
+                                    {{else}}
+                                        Расчет...
+                                    {{end}}
+                                </div>
+                                <div class="cost-label">Стоимость</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="detail-row">
-                        <div class="detail-input">
-                            <div class="detail-field">20%</div>
-                        </div>
-                        <div class="detail-label">Уровень заряда</div>
-                        <div class="cost-section">
-                            <div class="cost-display">1000.00 ₽</div>
-                            <div class="cost-label">Стоимость</div>
+
+                        <div class="detail-row">
+                            <div class="detail-input">
+                                <div class="detail-field">
+                                    {{if .EstimatedTime}}
+                                        {{printf "%.1f" .EstimatedTime}} ч
+                                    {{else}}
+                                        --
+                                    {{end}}
+                                </div>
+                            </div>
+                            <div class="detail-label">Время зарядки</div>
                         </div>
                     </div>
                 </div>
-            </div>
+                {{end}}
             {{end}}
         </div>
 
@@ -77,5 +118,3 @@
     </div>
 </body>
 </html>
-
-{{ end }}
