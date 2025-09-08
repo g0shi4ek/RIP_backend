@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,23 +23,28 @@ func NewChargingHandler(repo domain.IChargingRepository) (*ChargingHandler, erro
 
 func (h *ChargingHandler) InitRoutes() *gin.Engine {
 	r := gin.Default()
-	r.LoadHTMLGlob("../templates/*")
-	r.Static("/resources", "../resources")
+	r.LoadHTMLGlob("./templates/*")
+	r.Static("/resources", "./resources")
 
-	r.GET("/", h.GetAllTarrifs)
+	r.GET("/", h.GetTarrifs)
 	r.GET("/tariff/:id", h.GetChargingTarrifById)
 	r.GET("/application/:id", h.GetChargingApplicationById)
-	r.GET("/searchTariff", h.SearchTariffQuery)
-
+	
 	return r
 }
 
-func (h *ChargingHandler) GetAllTarrifs(c *gin.Context) {
+func (h *ChargingHandler) GetTarrifs(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
-	tariffsList, err := h.chargingRepository.GetAllTariffs(ctx)
+	var tariffsList *[]domain.ChargingTariff
+	var err error
 
-	log.Println((*tariffsList)[0].Id)
+	searchQueryTariff := c.Query("tariffName")
+	if searchQueryTariff == "" {
+		tariffsList, err = h.chargingRepository.GetAllTariffs(ctx)
+	} else {
+		tariffsList, err = h.chargingRepository.SearchTariffs(ctx, searchQueryTariff)
+	}
 
 	if err != nil || tariffsList == nil {
 		logrus.Error(err)
@@ -49,11 +53,13 @@ func (h *ChargingHandler) GetAllTarrifs(c *gin.Context) {
 		})
 		return
 	}
+
 	application, _ := h.chargingRepository.GetChargingApplicationById(ctx, 1)
-	log.Println((*application).Id)
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{
-		"tariffs":     tariffsList,
-		"application": application,
+
+	c.HTML(http.StatusOK, "index.html", gin.H{
+		"tariffs":      tariffsList,
+		"application":  application,
+		"searchTariff": searchQueryTariff,
 	})
 }
 
@@ -77,7 +83,7 @@ func (h *ChargingHandler) GetChargingTarrifById(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "tariffDetails.tmpl", gin.H{
+	c.HTML(http.StatusOK, "tariffDetails.html", gin.H{
 		"tariff": tariff,
 	})
 }
@@ -112,37 +118,9 @@ func (h *ChargingHandler) GetChargingApplicationById(c *gin.Context) {
 	}
 	orderTariffList := (*tariffsList)[4:]
 
-	c.HTML(http.StatusOK, "application.tmpl", gin.H{
+	c.HTML(http.StatusOK, "application.html", gin.H{
 		"application": application,
 		"tariffs":     orderTariffList,
 	})
 
-}
-
-func (h *ChargingHandler) SearchTariffQuery(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
-	defer cancel()
-
-	searchQueryTariff := c.Query("tariffName")
-	if searchQueryTariff == "" {
-		c.Redirect(http.StatusFound, "/")
-		return
-	}
-
-	tariffsList, err := h.chargingRepository.SearchTariffs(ctx, searchQueryTariff)
-	if err != nil {
-		logrus.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Search failed",
-		})
-		return
-	}
-
-	application, _ := h.chargingRepository.GetChargingApplicationById(ctx, 1)
-
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{
-		"tariffs":      tariffsList,
-		"application":  application,
-		"searchTariff": searchQueryTariff,
-	})
 }

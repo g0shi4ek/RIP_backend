@@ -34,7 +34,7 @@ func (r *ChargingRepository) GetChargingApplicationById(ctx context.Context, id 
 		Id:             1,
 		Price:          5400.3,
 		AmountOfOrders: 2,
-		Status:         "draft",
+		Status:         "черновик",
 		CreatedAt:      time.Now(),
 		IsDeleted:      false,
 	}
