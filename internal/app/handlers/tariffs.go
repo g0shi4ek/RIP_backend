@@ -27,11 +27,9 @@ func (h *ChargingHandler) GetTarrifs(c *gin.Context) {
 		h.ErrorChargingHandler(c, http.StatusInternalServerError, err)
 		return
 	}
-
-	applicationId := uint(1)
 	creatorId := uint(3)
 
-	application, _ := h.chargingRepository.GetChargingApplicationById(ctx, applicationId, creatorId)
+	application, _ := h.chargingRepository.GetChargingApplicationByStatus(ctx, creatorId, "draft")
 
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"tariffs":      tariffsList,

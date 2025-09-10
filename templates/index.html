@@ -25,7 +25,7 @@
                 <button type="submit" class="search-btn btn-hover">Найти</button>
             </form>
             {{if .application}}
-            <a href="/application/{{.application.Id}}" class="current-request">
+            <a href="/application" class="current-request">
                 <div class="request-title">Текущая заявка</div>
                 <div class="request-subtitle">Количество услуг: {{.application.AmountOfOrders}}</div>
             </a>
@@ -47,11 +47,13 @@
                     <div class="service-buttons">
                         <a href="/tariff/{{.Id}}" class="details-btn btn-hover">Подробнее</a>
                         <form action="/tariff/{{.Id}}/application" method="POST" class="add-to-application-form">
-                            <button type="submit" class="add-btn btn-hover">Добавить в заявку</button>
+                            <button type="submit" class="add-btn">Добавить в заявку</button>
                         </form>
                     </div>
                 </div>
-                <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
+                <div class="service-image-container">
+                    <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
+                </div>
             </div>
             {{end}}
         </div>

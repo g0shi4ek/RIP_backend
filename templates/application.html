@@ -38,6 +38,9 @@
                             <div class="service-title">{{.Tariff.NameofTariff}}</div>
                             <div class="service-description">{{.Tariff.Description}}</div>
                             <div class="service-price">{{.Tariff.PricePerHour}} ₽/час</div>
+                            <div class="service-buttons">
+                                <a href="/tariff/{{.Tariff.Id}}" class="details-btn btn-hover">Подробнее</a>
+                            </div>
                         </div>
                         <img class="service-image" src="{{.Tariff.ImageUrl}}" alt="{{.Tariff.NameofTariff}}">
                     </div>

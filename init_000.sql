@@ -18,9 +18,9 @@ VALUES
 -- заявки
 INSERT INTO charging_applications (total_price, creator_id, moderator_id, amount_of_orders, status, completed_at, is_deleted)
 VALUES
-  (0.0, 3, NULL, 1, 'черновик',  NULL, false),
-  (648.0, 3, 1, 2, 'отклонён', NULL, false),
-  (216.0, 2, NULL, 1, 'удалён', NULL, true);
+  (0.0, 3, NULL, 1, 'draft',  NULL, false),
+  (648.0, 3, 1, 2, 'canceled', NULL, false),
+  (216.0, 2, NULL, 1, 'deleted', NULL, true);
 
 
 -- заказы (связь M-M)

@@ -19,7 +19,7 @@ func NewChargingHandler(repo domain.IChargingRepository) (*ChargingHandler, erro
 func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
 	r.GET("/tariffs", h.GetTarrifs)
 	r.GET("/tariff/:id", h.GetChargingTarrifById)
-	r.GET("/application/:id", h.GetChargingApplicationById)
+	r.GET("/application", h.GetChargingApplicationByStatus)
 	r.POST("/application/:id", h.DeleteChargingApplicationById)
 	r.POST("/tariff/:tariffId/application", h.AddTariffToApplication)
 }

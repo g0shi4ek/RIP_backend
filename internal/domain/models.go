@@ -49,12 +49,11 @@ type ChargingApplication struct {
 	Creator   User `gorm:"foreignKey:CreatorID"`
 	Moderator User `gorm:"foreignKey:ModeratorID"`
 
-	AmountOfOrders uint      `gorm:"default:1"`
-	Status         string    `gorm:"type:varchar(20);not null;default:'черновик'"` // черновик, удалён, сформирован, завершён, отклонён
+	AmountOfOrders uint      `gorm:"default:0"`
+	Status         string    `gorm:"type:varchar(20);not null;default:'draft'"` // черновик, удалён, сформирован, завершён, отклонён
 	CreatedAt      time.Time `gorm:"autoCreateTime"`
 	UpdatedAt      time.Time `gorm:"autoUpdateTime"`
 	CompletedAt    time.Time
-	IsDeleted      bool `gorm:"default:false"`
 }
 
 type User struct {

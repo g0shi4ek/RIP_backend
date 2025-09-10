@@ -10,13 +10,49 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *ChargingRepository) GetChargingApplicationById(ctx context.Context, applicationId uint, creatorId uint) (*domain.ChargingApplication, error) {
+func (r *ChargingRepository) CreateDraftChargingApplication(ctx context.Context, creatorId uint) (*domain.ChargingApplication, error) {
+	newApplication := &domain.ChargingApplication{
+		CreatorID:      creatorId,
+		ModeratorID:    1,
+		Status:         "draft",
+		AmountOfOrders: 0,
+		TotalPrice:     0,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	}
+
+	err := r.db.WithContext(ctx).Create(newApplication).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to create draft application: %v", err)
+	}
+
+	return newApplication, nil
+}
+
+func (r *ChargingRepository) GetChargingApplicationByStatus(ctx context.Context, creatorId uint, status string) (*domain.ChargingApplication, error) {
 	var application domain.ChargingApplication
-	status := "черновик"
 
 	err := r.db.WithContext(ctx).
 		Model(&application).
-		Where("id = ? AND is_deleted = ? AND creator_id = ? AND status = ?", applicationId, false, creatorId, status).
+		Where("creator_id = ? AND status = ?", creatorId, status).
+		First(&application).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("application with status %s not found", status)
+		}
+		return nil, fmt.Errorf("failed to get application: %v", err)
+	}
+
+	return &application, nil
+}
+
+/*func (r *ChargingRepository) GetChargingApplicationById(ctx context.Context, applicationId uint, creatorId uint) (*domain.ChargingApplication, error) {
+	var application domain.ChargingApplication
+
+	err := r.db.WithContext(ctx).
+		Model(&application).
+		Where("id = ? AND NOT(status = ?) AND creator_id = ?", applicationId, "deleted", creatorId).
 		First(&application).Error
 
 	if err != nil {
@@ -27,11 +63,11 @@ func (r *ChargingRepository) GetChargingApplicationById(ctx context.Context, app
 	}
 
 	return &application, nil
-}
+}*/
 
 func (r *ChargingRepository) DeleteChargingApplicationById(ctx context.Context, id uint) error {
 	// SQL UPDATE без ORM
-	query := "UPDATE charging_applications SET status = 'удалён', is_deleted = true, updated_at = NOW() WHERE id = ?"
+	query := "UPDATE charging_applications SET status = 'deleted', updated_at = NOW() WHERE id = ?"
 	err := r.db.WithContext(ctx).Exec(query, id).Error
 
 	if err != nil {
@@ -40,44 +76,5 @@ func (r *ChargingRepository) DeleteChargingApplicationById(ctx context.Context, 
 		}
 		return fmt.Errorf("failed to delete application: %v", err)
 	}
-	return nil
-}
-
-// Нужна ли вообще?
-func (r *ChargingRepository) UpdateChargingApplicationById(ctx context.Context, id uint, app *domain.ChargingApplication) error {
-	var application domain.ChargingApplication
-	creatorId := 3
-	status := "черновик"
-
-	err := r.db.WithContext(ctx).
-		Model(&application).
-		Where("id = ? AND is_deleted = ? AND creator_id = ? AND status = ?", id, false, creatorId, status).
-		First(&application).Error
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("application with id %d not found", id)
-		}
-		return fmt.Errorf("failed to get application: %v", err)
-	}
-
-	updateData := map[string]interface{}{
-		"status":           app.Status,
-		"moderator_id":     app.ModeratorID,
-		"amount_of_orders": app.AmountOfOrders,
-		"total_price":      app.TotalPrice,
-		"updated_at":       time.Now(),
-		"completed_at":     app.CompletedAt,
-	}
-
-	err = r.db.WithContext(ctx).
-		Model(&domain.ChargingApplication{}).
-		Where("id = ? AND is_deleted = ? AND creator_id = ? AND status = ?", id, false, creatorId, status).
-		Updates(updateData).Error
-
-	if err != nil {
-		return fmt.Errorf("failed to update application: %v", err)
-	}
-
 	return nil
 }
