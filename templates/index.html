@@ -46,7 +46,9 @@
                     <div class="service-price">{{.PricePerHour}} ₽/час</div>
                     <a href="/tariff/{{.Id}}" class="details-btn btn-hover">Подробнее</a>
                 </div>
-                <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
+                <div class="service-image-container">
+                    <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
+                </div>
             </div>
             {{end}}
         </div>

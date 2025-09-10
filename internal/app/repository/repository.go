@@ -32,9 +32,9 @@ func (r *ChargingRepository) GetTariffById(ctx context.Context, id int) (*domain
 func (r *ChargingRepository) GetChargingApplicationById(ctx context.Context, id int) (*domain.ChargingApplication, error) {
 	application := domain.ChargingApplication{
 		Id:             1,
-		Price:          5400.3,
+		Price:          2500.00,
 		AmountOfOrders: 2,
-		Status:         "черновик",
+		Status:         "draft",
 		CreatedAt:      time.Now(),
 		IsDeleted:      false,
 	}

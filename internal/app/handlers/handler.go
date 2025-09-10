@@ -116,7 +116,7 @@ func (h *ChargingHandler) GetChargingApplicationById(c *gin.Context) {
 		})
 		return
 	}
-	orderTariffList := (*tariffsList)[4:]
+	orderTariffList := (*tariffsList)[:2]
 
 	c.HTML(http.StatusOK, "application.html", gin.H{
 		"application": application,

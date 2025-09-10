@@ -34,7 +34,9 @@
                         <div class="service-price">{{.PricePerHour}} ₽/час</div>
                         <a href="/tariff/{{.Id}}" class="details-btn btn-hover">Подробнее</a>
                     </div>
-                    <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
+                    <div class="service-image-container">
+                        <img class="service-image" src="{{.ImageUrl}}" alt="{{.NameofTariff}}">
+                    </div>
                 </div>
 
                 <div class="detail-card">
@@ -58,6 +60,12 @@
                             <div class="cost-display">1000.00 ₽</div>
                             <div class="cost-label">Стоимость</div>
                         </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-input">
+                            <div class="detail-field">2:40</div>
+                        </div>
+                        <div class="detail-label">Время зарядки</div>
                     </div>
                 </div>
             </div>
