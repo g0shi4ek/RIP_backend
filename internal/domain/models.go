@@ -53,7 +53,7 @@ type ChargingApplication struct {
 	Status         string    `gorm:"type:varchar(20);not null;default:'draft'"` // черновик, удалён, сформирован, завершён, отклонён
 	CreatedAt      time.Time `gorm:"autoCreateTime"`
 	UpdatedAt      time.Time `gorm:"autoUpdateTime"`
-	CompletedAt    time.Time
+	CompletedAt    time.Time `gorm:"default:null"`
 }
 
 type User struct {

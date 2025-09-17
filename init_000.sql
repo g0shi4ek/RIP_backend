@@ -16,11 +16,11 @@ VALUES
   ('Ультрабыстрая зарядка DC', 'Зарядка 350 кВт (Tesla Supercharger)', 'http://127.0.0.1:9000/charging-images/image.png', 18.0, 350.0, false);
 
 -- заявки
-INSERT INTO charging_applications (total_price, creator_id, moderator_id, amount_of_orders, status, completed_at, is_deleted)
+INSERT INTO charging_applications (total_price, creator_id, amount_of_orders, status)
 VALUES
-  (0.0, 3, NULL, 1, 'draft',  NULL, false),
-  (648.0, 3, 1, 2, 'canceled', NULL, false),
-  (216.0, 2, NULL, 1, 'deleted', NULL, true);
+  (648.0, 3, 2, 'canceled'),
+  (216.0, 2, 1, 'deleted'),
+  (0.0, 3, 1, 'draft');
 
 
 -- заказы (связь M-M)
@@ -29,14 +29,13 @@ VALUES
   (1, 1, 75.5, 20, '2025-02-22 14:30:00', 2.5, 300.0, false),
   (2, 6, 100.0, 10, '2025-01-23 15:00:00', 1.0, 180.0, false),
   (2, 2, 85.0, 40, '2025-01-23 15:30:00', 1.5, 468.0, false),
-  (3, 1, 65.0, 25, '2025-01-24 16:10:00', 1.5, 216.0, true);
+  (3, 1, 65.0, 25, '2025-01-24 16:10:00', 1.5, 216.0, false);
 
 
 DELETE FROM charging_orders;
 DELETE FROM charging_applications;
 DELETE FROM charging_tariffs;
 DELETE FROM users;
-
 
 ALTER TABLE users 
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
@@ -49,8 +48,7 @@ ALTER COLUMN is_deleted SET DEFAULT false;
 
 ALTER TABLE charging_applications
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
-ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP,
-ALTER COLUMN is_deleted SET DEFAULT false;
+ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
 
 ALTER TABLE charging_orders
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
