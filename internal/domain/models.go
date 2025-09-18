@@ -39,8 +39,8 @@ type ChargingTariff struct {
 type ChargingApplication struct {
 	Id          uint `gorm:"primaryKey"`
 	TotalPrice  float32
-	CreatorID   uint `gorm:"not null"`
-	ModeratorID uint
+	CreatorId   uint `gorm:"not null"`
+	ModeratorId uint
 
 	Creator   User `gorm:"foreignKey:CreatorID"`
 	Moderator User `gorm:"foreignKey:ModeratorID"`
@@ -54,7 +54,7 @@ type ChargingApplication struct {
 }
 
 type User struct {
-	ID          uint   `gorm:"primary_key" json:"id"`
+	Id          uint   `gorm:"primary_key" json:"id"`
 	Login       string `gorm:"type:varchar(25);unique;not null" json:"login"`
 	Password    string `gorm:"type:varchar(100);not null" json:"-"`
 	IsModerator bool   `gorm:"type:boolean;default:false" json:"is_moderator"`
