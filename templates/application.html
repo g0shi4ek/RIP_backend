@@ -20,98 +20,95 @@
         <div class="search-section">
             <div class="current-request">
                 <div class="request-title">Текущая заявка</div>
-                <div class="request-subtitle">Стоимость {{printf "%.2f" .application.TotalPrice}} ₽</div>
-                <form action="/application/{{.application.Id}}" method="POST" class="delete-form">
-                    <button type="submit" class="delete-btn btn-hover">
-                        Удалить заявку
-                    </button>
-                </form>
+                <div class="request-subtitle">
+                    <p>Стоимость {{printf "%.2f" .application.TotalPrice}} ₽ </p>
+                    <p>Количество услуг: {{.application.AmountOfOrders}}</p>
+                </div>
             </div>
         </div>
-
-        <div class="details-section">
-            {{if .orders}}
-                {{range .orders}}
-                <div class="order-card">
-                    <div class="service-card">
-                        <div class="service-content">
-                            <div class="service-title">{{.Tariff.NameofTariff}}</div>
-                            <div class="service-description">{{.Tariff.Description}}</div>
-                            <div class="service-price">{{.Tariff.PricePerHour}} ₽/час</div>
-                            <div class="service-buttons">
-                                <a href="/tariff/{{.Tariff.Id}}" class="details-btn btn-hover">Подробнее</a>
-                            </div>
-                        </div>
-                        <div class="service-image-container">
-                            <img class="service-image" src="{{.Tariff.ImageUrl}}" alt="{{.Tariff.NameofTariff}}">
-                        </div>
+        <div class="details-container"> 
+            <div class="phone-input-section">
+                <div class="phone-input-container">
+                    <label class="phone-input-label">Номер телефона</label>
+                    <div class="phone-input-wrapper">
+                        <input type="chargingPhone" class="phone-input-field input-field" placeholder="+9 (999) 999-99-99" 
+                               value="{{if .creatorPhone}}{{.creatorPhone}}{{end}}">
                     </div>
-
-                    <div class="detail-card">
-                        <div class="detail-row">
-                            <div class="detail-input">
-                                <div class="detail-field">
-                                    {{if .BatteryCapacity}}
-                                        {{printf "%.2f" .BatteryCapacity}} кВт·ч
-                                    {{else}}
-                                        Не указано
-                                    {{end}}
-                                </div>
-                            </div>
-                            <div class="detail-label">Объем батареи</div>
-                            <div class="time-section">
-                                <div class="time-display">
-                                    {{if not .StartTime.IsZero}}
-                                        {{.StartTime.Format "15:04"}}
-                                    {{else}}
-                                        --
-                                    {{end}}
-                                </div>
-                                <div class="time-label">Время начала</div>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-row">
-                            <div class="detail-input">
-                                <div class="detail-field">
-                                    {{if .CurrentPercent}}
-                                        {{.CurrentPercent}}%
-                                    {{else}}
-                                        Не указано
-                                    {{end}}
-                                </div>
-                            </div>
-                            <div class="detail-label">Уровень заряда</div>
-                            <div class="cost-section">
-                                <div class="cost-display">
-                                    {{if .CalculatedPrice}}
-                                        {{printf "%.2f" .CalculatedPrice}} ₽
-                                    {{else}}
-                                        Расчет...
-                                    {{end}}
-                                </div>
-                                <div class="cost-label">Стоимость</div>
-                            </div>
-                        </div>
-
-                        <div class="detail-row">
-                            <div class="detail-input">
-                                <div class="detail-field">
-                                    {{if .EstimatedTime}}
-                                        {{printf "%.1f" .EstimatedTime}} ч
-                                    {{else}}
-                                        --
-                                    {{end}}
-                                </div>
-                            </div>
-                            <div class="detail-label">Время зарядки</div>
-                        </div>
-                    </div>
+                    <div class="phone-input-hint">На этот номер поступит уведомление о статусе заявки</div>
                 </div>
-                {{end}}
-            {{end}}
+            </div>           
+            <div class="details-section">
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Тариф</th>
+                            <th style="width: 15%;">Объем батареи (кВт·ч)</th>
+                            <th style="width: 15%;">Уровень заряда (%)</th>
+                            <th style="width: 15%;">Время начала</th>
+                            <th style="width: 15%;">Длительность зарядки (ч)</th>
+                            <th style="width: 15%;">Стоимость</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{if .orders}}
+                            {{range .orders}}
+                            <tr>
+                                <td>
+                                    <div class="service-card">
+                                        <div class="service-info">
+                                            <div class="service-title">{{.Tariff.NameofTariff}}</div>
+                                            <div class="service-description">{{.Tariff.Description}}</div>
+                                            <div class="service-price">{{.Tariff.PricePerHour}} ₽/час</div>
+                                        </div>
+                                        <div class="service-image-container">
+                                            <img class="service-image" src="{{.Tariff.ImageUrl}}" alt="{{.Tariff.NameofTariff}}">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="number" class="input-field battery-capacity" 
+                                           value="{{printf "%.2f" .BatteryCapacity}}" 
+                                           placeholder="Введите объем" step="0.01" min="0">
+                                </td>
+                                <td>
+                                    <input type="number" class="input-field charge-level" 
+                                           value="{{.CurrentPercent}}" 
+                                           placeholder="Введите %" min="0" max="100">
+                                </td>
+                                <td>
+                                    <input type="time" class="input-field start-time" 
+                                           value="{{.StartTime.Format "15:04"}}">
+                                </td>
+                                <td>
+                                    <div class="result-value estimated-time">
+                                        {{if .EstimatedTime}}
+                                            {{.EstimatedTime}} ч
+                                        {{else}}
+                                            0.00 ч
+                                        {{end}}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="result-value calculated-price">
+                                        {{if .CalculatedPrice}}
+                                            {{printf "%.2f" .CalculatedPrice}} ₽
+                                        {{else}}
+                                            0.00 ₽
+                                        {{end}}
+                                    </div>
+                                </td>
+                            </tr>
+                            {{end}}
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
         </div>
-
+        <form action="/application/{{.application.Id}}" method="POST" class="delete-form">
+            <button type="submit" class="delete-btn btn-hover">
+                Удалить заявку
+            </button>
+        </form>
         <div class="footer">
             <div class="footer-content">
                 <div class="footer-item">RIP © 2025</div>

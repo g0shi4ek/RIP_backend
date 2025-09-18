@@ -61,7 +61,6 @@ func (r *ChargingRepository) GetChargingOrdersByApplicationId(ctx context.Contex
 		Preload("Tariff").
 		Preload("Application").
 		Where("application_id = ? AND is_deleted = ?", applicationId, false).
-		Order("created_at DESC").
 		Find(&chargingOrders).Error
 
 	if err != nil {

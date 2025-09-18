@@ -24,17 +24,6 @@
                 </div>
                 <button type="submit" class="search-btn btn-hover">Найти</button>
             </form>
-            {{if .application}}
-            <a href="/application" class="current-request">
-                <div class="request-title">Текущая заявка</div>
-                <div class="request-subtitle">Количество услуг: {{.application.AmountOfOrders}}</div>
-            </a>
-            {{else}}
-            <div class="current-request inactive">
-                <div class="request-title">Текущая заявка</div>
-                <div class="request-subtitle">Нет активных заявок</div>
-            </div>
-            {{end}}
         </div>
 
         <div class="services-section">
@@ -66,6 +55,16 @@
                 <div class="footer-item">Расположение</div>
             </div>
         </div>
+        {{if .application}}
+        <a href="/application" class="floating-cart">
+            <div class="cart-badge">{{.application.AmountOfOrders}}</div>
+            <div class="cart-icon"></div>
+        </a>
+        {{else}}
+        <div class="floating-cart">
+            <div class="cart-icon"></div>
+        </div>
+        {{end}}
     </div>
 </body>
 </html>

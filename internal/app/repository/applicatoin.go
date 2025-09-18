@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
 	"gorm.io/gorm"
@@ -17,8 +16,6 @@ func (r *ChargingRepository) CreateDraftChargingApplication(ctx context.Context,
 		Status:         "draft",
 		AmountOfOrders: 0,
 		TotalPrice:     0,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
 	}
 
 	err := r.db.WithContext(ctx).Create(newApplication).Error
