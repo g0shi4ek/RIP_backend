@@ -15,8 +15,6 @@ type Application struct {
    Handler domain.IChargingHandler
 }
 
-// интерфейс или структура? 
-
 func NewApp(c *config.Config, r *gin.Engine, h domain.IChargingHandler) *Application {
    return &Application{
       Config:  c,
