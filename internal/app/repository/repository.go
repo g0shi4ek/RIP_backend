@@ -1,21 +1,31 @@
 package repository
 
 import (
-	"gorm.io/driver/postgres"
+	"fmt"
+
+	"github.com/g0shi4ek/RIP_backend/internal/domain"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/database"
 	"gorm.io/gorm"
 )
 
 type ChargingRepository struct {
 	db *gorm.DB
+	mc domain.ITariffImagesStorage
 }
 
-func NewChargingRepository(dsn string) (*ChargingRepository, error) {
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+func NewChargingRepository() (*ChargingRepository, error) {
+	postgresClient, err := database.NewPostgresClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error initializing postgres client: %v", err)
+	}
+
+	minioClient, err := database.NewMinioClient()
+	if err != nil {
+		return nil, fmt.Errorf("error initializing minio client: %v", err)
 	}
 
 	return &ChargingRepository{
-		db: db,
+		db: postgresClient,
+		mc: minioClient,
 	}, nil
 }

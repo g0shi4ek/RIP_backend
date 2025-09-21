@@ -1,3 +1,6 @@
+ALTER TABLE charging_applications
+ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
 -- пользователи
 INSERT INTO users (login, password, is_moderator)
 VALUES
@@ -24,25 +27,9 @@ VALUES
 
 
 -- заказы (связь M-M)
-INSERT INTO charging_orders (application_id, tariff_id, battery_capacity, current_percent, start_time, estimated_time, calculated_price, is_deleted)
+INSERT INTO charging_orders (application_id, tariff_id, battery_capacity, current_percent, start_time, estimated_time, calculated_price)
 VALUES
-  (1, 1, 75.5, 20, '2025-02-22 14:30:00', 2.5, 300.0, false),
-  (2, 6, 100.0, 10, '2025-01-23 15:00:00', 1.0, 180.0, false),
-  (2, 2, 85.0, 40, '2025-01-23 15:30:00', 1.5, 468.0, false),
-  (3, 1, 65.0, 25, '2025-01-24 16:10:00', 1.5, 216.0, false);
-
-
-DELETE FROM charging_orders;
-DELETE FROM charging_applications;
-DELETE FROM charging_tariffs;
-DELETE FROM users;
-
-DROP TABLE charging_orders;
-DROP TABLE charging_applications;
-DROP TABLE charging_tariffs;
-DROP TABLE users;
-
-
-ALTER TABLE charging_applications
-ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
-ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
+  (1, 1, 75.5, 20, '2025-02-22 14:30:00', 2.5, 300.0),
+  (2, 6, 100.0, 10, '2025-01-23 15:00:00', 1.0, 180.0),
+  (2, 2, 85.0, 40, '2025-01-23 15:30:00', 1.5, 468.0),
+  (3, 1, 65.0, 25, '2025-01-24 16:10:00', 1.5, 216.0);

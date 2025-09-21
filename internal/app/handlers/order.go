@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +15,7 @@ func (h *ChargingHandler) AddTariffToApplication(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	tariffId, err := h.validateID(c.Param("id"))
+	tariffId, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
@@ -45,7 +46,7 @@ func (h *ChargingHandler) DeleteChargingOrderFromApplication(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	orderId, err := h.validateID(c.Param("id"))
+	orderId, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
@@ -64,7 +65,7 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	id, err := h.validateID(c.Param("id"))
+	id, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return

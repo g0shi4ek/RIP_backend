@@ -1,6 +1,3 @@
-# устанавливаем версию в соотвествии с необходимой нам
-# подробнее на https://docs.docker.com/compose/compose-file/compose-versioning/
-# настройки и конфигурации, общие для всех контейнеров
 x-minio-common: &minio-common
   image: quay.io/minio/minio:RELEASE.2022-10-15T19-57-03Z # устанавливаем image
   # команда которая выполняется при запуске контейнера

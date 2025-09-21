@@ -16,7 +16,6 @@ type ChargingOrder struct {
 	StartTime       time.Time           `gorm:"not null" json:"start_time"` // if night => price >
 	EstimatedTime   float32             `json:"estimated_time"`             // расчетное время зарядки в часах
 	CalculatedPrice float32             `json:"calculated_price"`           // расчетная стоимость для этой услуги
-	IsDeleted       bool                `gorm:"default:false" json:"is_deleted"`
 }
 
 // Service

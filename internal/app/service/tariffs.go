@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
 )
 
 func (s *ChargingService) CreateTariff(ctx context.Context, tariff *domain.ChargingTariff) (*domain.ChargingTariff, error) {
-	if err := s.validateTariff(tariff); err != nil {
+	if err := helpers.ValidateTariff(tariff); err != nil {
 		return nil, err
 	}
 
@@ -29,7 +30,7 @@ func (s *ChargingService) UpdateTariff(ctx context.Context, tariff *domain.Charg
 		return fmt.Errorf("tariff not found: %v", err)
 	}
 
-	if err := s.validateTariff(tariff); err != nil {
+	if err := helpers.ValidateTariff(tariff); err != nil {
 		return err
 	}
 
@@ -90,15 +91,10 @@ func (s *ChargingService) DeleteTariff(ctx context.Context, id uint) error {
 		return fmt.Errorf("tariff not found: %v", err)
 	}
 
-	if existingTariff.ImageUrl != ""{
-		// удаление из минио
-	}
+	imageList := strings.Split(existingTariff.ImageUrl, "/")
+	filename := imageList[len(imageList)-1]
 
-	chargingUpdates := map[string]interface{}{
-		"is_deleted":  true,
-	}
-
-	err = s.chargingRepository.UpdateTariff(ctx, existingTariff.Id, chargingUpdates)
+	err = s.chargingRepository.DeleteTariff(ctx, existingTariff.Id, filename)
 	if err != nil {
 		return fmt.Errorf("failed to delete tariff: %v", err)
 	}
@@ -113,34 +109,11 @@ func (s *ChargingService) UploadTariffImage(ctx context.Context, id uint, tariff
 		return fmt.Errorf("tariff not found: %v", err)
 	}
 
-	// добавление в минио => возврат урла
-	tariffImageUrl := "www"
-
-	chargingUpdates := map[string]interface{}{
-		"image_url": tariffImageUrl,
-	}
-
-	err = s.chargingRepository.UpdateTariff(ctx, existingTariff.Id, chargingUpdates)
+	err = s.chargingRepository.UpdateTariffImage(ctx, existingTariff.Id, tariffImage)
 	if err != nil {
 		return fmt.Errorf("failed to upload tariff image: %v", err)
 	}
 
 	log.Printf("image uploaded: %d", id)
-	return nil
-}
-
-func (s *ChargingService) validateTariff(tariff *domain.ChargingTariff) error { // в хелперы?
-	if tariff.NameofTariff == "" {
-		return fmt.Errorf("tariff name is required")
-	}
-	if tariff.Description == "" {
-		return fmt.Errorf("tariff description is required")
-	}
-	if tariff.PricePerHour <= 0 {
-		return fmt.Errorf("price per hour must be positive")
-	}
-	if tariff.Power <= 0 {
-		return fmt.Errorf("power must be positive")
-	}
 	return nil
 }

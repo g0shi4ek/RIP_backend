@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
 )
 
 func (s *ChargingService) AddChargingOrderToApplication(ctx context.Context, tariffId uint, applicationId uint) (*domain.ChargingOrder, error) {
@@ -21,7 +22,7 @@ func (s *ChargingService) AddChargingOrderToApplication(ctx context.Context, tar
 	}
 
 	for _, order := range *existingOrders {
-		if !order.IsDeleted && order.TariffId == tariffId {
+		if order.TariffId == tariffId {
 			return nil, fmt.Errorf("tariff already exists in application")
 		}
 	}
@@ -34,7 +35,6 @@ func (s *ChargingService) AddChargingOrderToApplication(ctx context.Context, tar
 		StartTime:       time.Time{},
 		EstimatedTime:   0,
 		CalculatedPrice: 0,
-		IsDeleted:       false,
 	}
 
 	err = s.chargingRepository.CreateChargingOrder(ctx, newChargingOrder)
@@ -80,7 +80,7 @@ func (s *ChargingService) UpdateChargingOrder(ctx context.Context, chargingOrder
 		return fmt.Errorf("charging order not found: %v", err)
 	}
 
-	if err := s.validateChargingOrder(chargingOrder); err != nil {
+	if err := helpers.ValidateChargingOrder(chargingOrder); err != nil {
 		return err
 	}
 
@@ -98,15 +98,5 @@ func (s *ChargingService) UpdateChargingOrder(ctx context.Context, chargingOrder
 	}
 
 	log.Printf("charging order updated: id=%d", chargingOrder.Id)
-	return nil
-}
-
-func (s *ChargingService) validateChargingOrder(chargingOrder *domain.ChargingOrder) error { // в хелперы?
-	if chargingOrder.BatteryCapacity <= 0 {
-		return fmt.Errorf("battery capacity is required")
-	}
-	if chargingOrder.CurrentPercent < 0 {
-		return fmt.Errorf("current percent is required")
-	}
 	return nil
 }

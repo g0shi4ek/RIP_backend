@@ -6,11 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type ITariffImagesStorage interface {
+	UploadTariffImage(ctx context.Context, imageData []byte, filename string) (string, error)
+	DeleteTariffImage(ctx context.Context, filename string) error
+}
+
 type IChargingRepository interface {
 	CreateTariff(ctx context.Context, tariff *ChargingTariff) error
 	UpdateTariff(ctx context.Context, id uint, chargingUpdates map[string]interface{}) error
 	GetAllTariffs(ctx context.Context) (*[]ChargingTariff, error)
 	GetTariffById(ctx context.Context, id uint) (*ChargingTariff, error)
+	UpdateTariffImage(ctx context.Context, id uint, imageData []byte) error
+	DeleteTariff(ctx context.Context, id uint, filename string) error
 
 	CreateChargingApplication(ctx context.Context, chargingApplication *ChargingApplication) error
 	UpdateChargingApplication(ctx context.Context, id uint, chargingUpdates map[string]interface{}) error

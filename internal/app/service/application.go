@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
 )
 
 func (s *ChargingService) GetChargingApplications(ctx context.Context, status, startDate, endDate string) (*[]domain.ChargingApplication, error) {
@@ -98,7 +99,7 @@ func (s *ChargingService) UpdateChargingApplicationPhone(ctx context.Context, ph
 		return fmt.Errorf("failed to get charging application: %v", err)
 	}
 
-	if err := s.validatePhone(phone); err != nil {
+	if err := helpers.ValidatePhone(phone); err != nil {
 		return err
 	}
 
@@ -146,8 +147,36 @@ func (s *ChargingService) CompleteChargingApplication(ctx context.Context, id ui
 		return fmt.Errorf("can only complete formed applications")
 	}
 
-	totalPrice := s.calculateTotalChargingPrice(application) // хелперы?
-	// рассчитать для каждого ордера
+	var totalPrice float32
+
+	chargingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, application.Id)
+	if err != nil {
+		return fmt.Errorf("failed to get orders for application: %v", err)
+	}
+
+	for _, chargingOrder := range *chargingOrders {
+		tariff, err := s.chargingRepository.GetTariffById(ctx, chargingOrder.TariffId)
+		if err != nil {
+			return fmt.Errorf("failed to get tariff for order %d: %v", chargingOrder.Id, err)
+		}
+
+		orderCost, chargingTime, err := helpers.CalculateChargingPriceForOrder(&chargingOrder, tariff)
+		if err != nil {
+			return fmt.Errorf("failed to calculate price for order %d: %v", chargingOrder.Id, err)
+		}
+
+		orderUpdates := map[string]interface{}{
+			"estimated_time":   chargingTime,
+			"calculated_price": orderCost,
+		}
+
+		err = s.chargingRepository.UpdateChargingOrder(context.Background(), chargingOrder.Id, orderUpdates)
+		if err != nil {
+			return fmt.Errorf("failed to update order %d: %v", chargingOrder.Id, err)
+		}
+
+		totalPrice += orderCost
+	}
 
 	chargingUpdates := map[string]interface{}{
 		"status":       "completed",
@@ -200,25 +229,5 @@ func (s *ChargingService) DeleteChargingApplication(ctx context.Context, creator
 	}
 
 	log.Printf("application deleted: %d", application.Id)
-	return nil
-}
-
-// Вспомогательные методы для расчетов, хелперы?
-
-func (s *ChargingService) calculateTotalChargingPrice(application *domain.ChargingApplication) float32 {
-	return 1000
-}
-
-func (s *ChargingService) calculateChargingPriceForOrder(application *domain.ChargingApplication) float32 {
-	return 1000
-}
-
-func (s *ChargingService) validatePhone(phone string) error {
-	if phone == "" {
-		return fmt.Errorf("phone number is required")
-	}
-	if len(phone) < 10 {
-		return fmt.Errorf("phone number is too short")
-	}
 	return nil
 }

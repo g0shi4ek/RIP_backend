@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *ChargingRepository) CreateChargingOrder(ctx context.Context, chargingOrder * domain.ChargingOrder) error {
+func (r *ChargingRepository) CreateChargingOrder(ctx context.Context, chargingOrder *domain.ChargingOrder) error {
 	//транзакция для согласованности данных
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Create(&chargingOrder).Error
@@ -31,7 +31,7 @@ func (r *ChargingRepository) CreateChargingOrder(ctx context.Context, chargingOr
 
 func (r *ChargingRepository) UpdateChargingOrder(ctx context.Context, id uint, chargingUpdates map[string]interface{}) error {
 	err := r.db.WithContext(ctx).Model(&domain.ChargingOrder{}).
-		Where("id = ? AND is_deleted = ?", id, false).
+		Where("id = ?", id).
 		Updates(chargingUpdates).Error
 
 	if err != nil {
@@ -49,7 +49,7 @@ func (r *ChargingRepository) GetChargingOrderById(ctx context.Context, id uint) 
 		Preload("Tariff").
 		Preload("Application").
 		Model(&chargingOrder).
-		Where("id = ? AND is_deleted = ?", id, false).
+		Where("id = ?", id).
 		First(&chargingOrder).Error
 
 	if err != nil {
@@ -65,7 +65,7 @@ func (r *ChargingRepository) GetChargingOrdersByApplicationId(ctx context.Contex
 	err := r.db.WithContext(ctx).
 		Preload("Tariff").
 		Preload("Application").
-		Where("application_id = ? AND is_deleted = ?", applicationId, false).
+		Where("application_id = ?", applicationId).
 		Find(&chargingOrders).Error
 
 	if err != nil {
@@ -81,7 +81,7 @@ func (r *ChargingRepository) DeleteChargingOrder(ctx context.Context, orderId ui
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Model(&domain.ChargingOrder{}).
 			Where("id = ?", orderId).
-			Update("is_deleted", true).Error
+			Delete(&domain.ChargingOrder{}).Error
 		if err != nil {
 			return fmt.Errorf("failed to delete charging order: %v", err)
 		}

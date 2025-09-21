@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/g0shi4ek/RIP_backend/internal/app/config"
-	"github.com/g0shi4ek/RIP_backend/internal/app/dsn"
 	"github.com/g0shi4ek/RIP_backend/internal/app/handlers"
 	"github.com/g0shi4ek/RIP_backend/internal/app/repository"
 	"github.com/g0shi4ek/RIP_backend/internal/app/service"
-	"github.com/g0shi4ek/RIP_backend/internal/pkg"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/server"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -20,10 +17,7 @@ func main() {
 		logrus.Fatalf("error loading config: %v", err)
 	}
 
-	postgresString := dsn.FromEnv()
-	fmt.Println(postgresString)
-
-	chargingRepo, err := repository.NewChargingRepository(postgresString)
+	chargingRepo, err := repository.NewChargingRepository()
 	if err != nil {
 		logrus.Fatalf("error initializing repository: %v", err)
 	}
@@ -38,6 +32,6 @@ func main() {
 		logrus.Fatalf("error initializing handlers: %v", err)
 	}
 
-	application := pkg.NewApp(conf, router, chargingHandler)
+	application := server.NewApp(conf, router, chargingHandler)
 	application.RunApp()
 }

@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (s *ChargingService) RegisterChargingUser(ctx context.Context, user *domain.User) (*domain.User, error) {
-	if err := s.validateUser(user); err != nil {
+	if err := helpers.ValidateUser(user); err != nil {
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func (s *ChargingService) GetChargingUserProfile(ctx context.Context, id uint) (
 }
 
 func (s *ChargingService) UpdateChargingUserProfile(ctx context.Context, id uint, user *domain.User) error {
-	if err := s.validateUser(user); err != nil {
+	if err := helpers.ValidateUser(user); err != nil {
 		return err
 	}
 
@@ -103,21 +103,5 @@ func (s *ChargingService) LoginChargingUser(ctx context.Context, login, password
 
 func (s *ChargingService) LogoutChargingUser(ctx context.Context, token string) error {
 	log.Printf("user logged out")
-	return nil
-}
-
-func (s *ChargingService) validateUser(user *domain.User) error { // в хелперы?
-	if strings.TrimSpace(user.Login) == "" {
-		return fmt.Errorf("login is required")
-	}
-	if len(user.Login) < 3 {
-		return fmt.Errorf("login must be at least 3 characters long")
-	}
-	if strings.TrimSpace(user.Password) == "" {
-		return fmt.Errorf("password is required")
-	}
-	if len(user.Password) < 3 {
-		return fmt.Errorf("password must be at least 3 characters long")
-	}
 	return nil
 }

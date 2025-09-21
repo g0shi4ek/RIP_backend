@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
@@ -13,15 +12,20 @@ import (
 )
 
 var (
-	ErrInvalidID           = fmt.Errorf("invalid ID")
-	ErrInvalidRequestBody  = fmt.Errorf("invalid request body")
-	ErrImageRequired       = fmt.Errorf("image file is required")
-	ErrImageTooLarge       = fmt.Errorf("image size too large, maximum 5MB")
-	ErrInvalidImageType    = fmt.Errorf("only image files are allowed")
-	ErrFailedReadImage     = fmt.Errorf("failed to read image file")
-	ErrInvalidDate         = fmt.Errorf("invalid date format")
-	ErrUnauthorized        = fmt.Errorf("unauthorized")
-	ErrForbidden           = fmt.Errorf("forbidden")
+	ErrInvalidID          = fmt.Errorf("invalid ID")
+	ErrInvalidRequestBody = fmt.Errorf("invalid request body")
+	ErrInvalidPhone       = fmt.Errorf("invalid phone number")
+	ErrImageRequired      = fmt.Errorf("image file is required")
+	ErrInvalidTariffData  = fmt.Errorf("invalid tariff data")
+	ErrInvalidLogin       = fmt.Errorf("invalid user login")
+	ErrInvalidPassword    = fmt.Errorf("invalid user password")
+	ErrInvalidOrderData   = fmt.Errorf("invalid battery capaciry or current percent")
+	ErrImageTooLarge      = fmt.Errorf("image size too large, maximum 5MB")
+	ErrInvalidImageType   = fmt.Errorf("only image files are allowed")
+	ErrFailedReadImage    = fmt.Errorf("failed to read image file")
+	ErrInvalidDate        = fmt.Errorf("invalid date format")
+	ErrUnauthorized       = fmt.Errorf("unauthorized")
+	ErrForbidden          = fmt.Errorf("forbidden")
 )
 
 type ChargingHandler struct {
@@ -75,17 +79,22 @@ func (h *ChargingHandler) RegisterChargingStatic(r *gin.Engine) {
 
 func (h *ChargingHandler) ErrorHandler(c *gin.Context, err error) {
 	logrus.Error(err.Error())
-	
+
 	var statusCode int
-	
+
 	switch {
-	case errors.Is(err, ErrInvalidID) || 
-	     errors.Is(err, ErrInvalidRequestBody) || 
-	     errors.Is(err, ErrImageRequired) || 
-	     errors.Is(err, ErrImageTooLarge) || 
-	     errors.Is(err, ErrInvalidImageType) ||
-	     errors.Is(err, ErrFailedReadImage) ||
-	     errors.Is(err, ErrInvalidDate):
+	case errors.Is(err, ErrInvalidID) ||
+		errors.Is(err, ErrInvalidRequestBody) ||
+		errors.Is(err, ErrInvalidPhone) ||
+		errors.Is(err, ErrInvalidTariffData) ||
+		errors.Is(err, ErrInvalidOrderData) ||
+		errors.Is(err, ErrImageRequired) ||
+		errors.Is(err, ErrImageTooLarge) ||
+		errors.Is(err, ErrInvalidImageType) ||
+		errors.Is(err, ErrFailedReadImage) ||
+		errors.Is(err, ErrInvalidLogin) ||
+		errors.Is(err, ErrInvalidPassword) ||
+		errors.Is(err, ErrInvalidDate):
 		statusCode = http.StatusBadRequest
 	case errors.Is(err, ErrUnauthorized):
 		statusCode = http.StatusUnauthorized
@@ -94,24 +103,16 @@ func (h *ChargingHandler) ErrorHandler(c *gin.Context, err error) {
 	case strings.Contains(err.Error(), "not found"):
 		statusCode = http.StatusNotFound
 	case strings.Contains(err.Error(), "already exists") ||
-	     strings.Contains(err.Error(), "already used"):
+		strings.Contains(err.Error(), "already used"):
 		statusCode = http.StatusConflict
 	default:
 		statusCode = http.StatusInternalServerError
 	}
-	
+
 	c.JSON(statusCode, gin.H{
 		"status":      "error",
 		"description": err.Error(),
 	})
-}
-
-func (h *ChargingHandler) validateID(idStr string) (uint, error) {
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		return 0, ErrInvalidID
-	}
-	return uint(id), nil
 }
 
 func (h *ChargingHandler) getCurrentUserID(c *gin.Context) (uint, error) {
