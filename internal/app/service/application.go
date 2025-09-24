@@ -15,7 +15,7 @@ func (s *ChargingService) GetChargingApplications(ctx context.Context, status, s
 	var err error
 
 	if startDate != "" {
-		startTime, err = time.Parse("2006-01-02", startDate)
+		startTime, err = time.Parse("02.01.2006", startDate)
 		if err != nil {
 			return nil, fmt.Errorf("invalid start date format: %v", err)
 		}
@@ -23,7 +23,7 @@ func (s *ChargingService) GetChargingApplications(ctx context.Context, status, s
 	}
 
 	if endDate != "" {
-		endTime, err = time.Parse("2006-01-02", endDate)
+		endTime, err = time.Parse("02.01.2006", endDate)
 		if err != nil {
 			return nil, fmt.Errorf("invalid end date format: %v", err)
 		}
@@ -123,6 +123,17 @@ func (s *ChargingService) FormChargingApplication(ctx context.Context, creatorId
 
 	if application.CreatorPhone == "" {
 		return fmt.Errorf("phone number is required to form charging application")
+	}
+
+	chargingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, application.Id)
+	if err != nil {
+		return fmt.Errorf("failed to get charging application orders: %v", err)
+	}
+
+	for _, chargingOrder := range *chargingOrders {
+		if err = helpers.ValidateChargingOrder(&chargingOrder); err != nil {
+			return fmt.Errorf("failed to form application: %v", err)
+		}
 	}
 
 	chargingUpdates := map[string]interface{}{

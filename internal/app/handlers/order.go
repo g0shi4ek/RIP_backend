@@ -65,19 +65,37 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	id, err := helpers.ValidateID(c.Param("id"))
+	orderId, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	var order domain.ChargingOrder
-	if err := c.ShouldBindJSON(&order); err != nil {
-		h.ErrorHandler(c, fmt.Errorf("%w: %v", ErrInvalidRequestBody, err))
+	var orderRequest struct {
+		BatteryCapacity float32 `json:"battery_capacity" binding:"required"`
+		CurrentPercent  int     `json:"current_percent" binding:"required"`
+		StartTime       string  `json:"start_time" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&orderRequest); err != nil {
+		h.ErrorHandler(c, ErrInvalidRequestBody)
+		return
+	}
+	location, _ := time.LoadLocation("Local")
+
+	startTime, err := time.ParseInLocation("15:04", orderRequest.StartTime, location)
+	if err != nil {
+		h.ErrorHandler(c, ErrInvalidRequestBody)
 		return
 	}
 
-	order.Id = id
+	order := domain.ChargingOrder{
+		Id:              orderId,
+		BatteryCapacity: orderRequest.BatteryCapacity,
+		CurrentPercent:  orderRequest.CurrentPercent,
+		StartTime:       startTime,
+	}
+
 	err = h.chargingService.UpdateChargingOrder(ctx, &order)
 	if err != nil {
 		h.ErrorHandler(c, err)

@@ -18,7 +18,7 @@ func CalculateChargingPriceForOrder(order *domain.ChargingOrder, tariff *domain.
 	chargeNeededKWh := (100 - float32(order.CurrentPercent)) * order.BatteryCapacity / 100
 
 	// Рассчитываем время зарядки в часах
-	chargingTimeHours := (chargeNeededKWh / tariff.Power) / efficiency
+	chargingTimeHours := chargeNeededKWh / (tariff.Power * efficiency)
 
 	// Определяем коэффициент времени (ночь/день)
 	timeMultiplier := getTimeMultiplier(order.StartTime)

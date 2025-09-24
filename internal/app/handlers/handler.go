@@ -72,10 +72,7 @@ func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
 	}
 }
 
-func (h *ChargingHandler) RegisterChargingStatic(r *gin.Engine) {
-	r.LoadHTMLGlob("templates/*")
-	r.Static("/resources", "./resources")
-}
+func (h *ChargingHandler) RegisterChargingStatic(r *gin.Engine) {}
 
 func (h *ChargingHandler) ErrorHandler(c *gin.Context, err error) {
 	logrus.Error(err.Error())
