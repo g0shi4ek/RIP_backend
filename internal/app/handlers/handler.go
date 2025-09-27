@@ -53,10 +53,10 @@ func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
 		api.GET("/chargingApplications", h.GetChargingApplications)
 		api.GET("/chargingApplications/:id", h.GetChargingApplicationById)
 		api.GET("/chargingApplications/draft", h.GetDraftChargingApplication)
-		api.PUT("/chargingApplications/:id/phone", h.UpdateChargingApplicationPhone)
-		api.PUT("/chargingApplications/:id/form", h.UpdateChargingApplicationByCreator)
+		api.PUT("/chargingApplications/phone", h.UpdateChargingApplicationPhone)
+		api.PUT("/chargingApplications/form", h.UpdateChargingApplicationByCreator)
 		api.PUT("/chargingApplications/:id/:action", h.UpdateChargingApplicationByModerator) // complete/reject
-		api.DELETE("/chargingApplications/:id", h.DeleteChargingApplicationById)
+		api.DELETE("/chargingApplications", h.DeleteChargingApplicationById)
 
 		// Orders
 		api.POST("/chargingApplications/tariffs/:id", h.AddTariffToApplication)
