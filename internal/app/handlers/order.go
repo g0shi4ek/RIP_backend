@@ -33,13 +33,13 @@ func (h *ChargingHandler) AddTariffToApplication(c *gin.Context) {
 		return
 	}
 
-	chargingOrder, err := h.chargingService.AddChargingOrderToApplication(ctx, tariffId, draftApplication.Id)
+	_, err = h.chargingService.AddChargingOrderToApplication(ctx, tariffId, draftApplication.Id)
 	if err != nil {
 		h.ErrorHandler(c, fmt.Errorf("failed to add tariff to application: %v", err))
 		return
 	}
 
-	c.JSON(http.StatusCreated, chargingOrder)
+	c.JSON(http.StatusCreated, gin.H{"message": "order successfully added to application"})
 }
 
 func (h *ChargingHandler) DeleteChargingOrderFromApplication(c *gin.Context) {
@@ -52,13 +52,13 @@ func (h *ChargingHandler) DeleteChargingOrderFromApplication(c *gin.Context) {
 		return
 	}
 
-	chargingApplication, err := h.chargingService.RemoveChargingOrderFromApplication(ctx, orderId)
+	_, err = h.chargingService.RemoveChargingOrderFromApplication(ctx, orderId)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, chargingApplication)
+	c.JSON(http.StatusOK, gin.H{"message": "order deleted successfully"})
 }
 
 func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {

@@ -88,16 +88,13 @@ func (h *ChargingHandler) LoginUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.chargingService.LoginChargingUser(ctx, request.Login, request.Password)
+	_, err := h.chargingService.LoginChargingUser(ctx, request.Login, request.Password)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "login successful",
-		"user":    user,
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "user login successful"})
 }
 
 func (h *ChargingHandler) LogOutUser(c *gin.Context) {
