@@ -2,9 +2,15 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+type ISessionStorage interface {
+	AddToBlacklist(ctx context.Context, token string, ttl time.Duration) error
+	IsInBlacklist(ctx context.Context, token string) (bool, error)
+}
 
 type ITariffImagesStorage interface {
 	UploadTariffImage(ctx context.Context, imageData []byte, filename string) (string, error)
@@ -36,6 +42,9 @@ type IChargingRepository interface {
 	UpdateChargingUser(ctx context.Context, id uint, chargingUpdates map[string]interface{}) error
 	GetChargingUserById(ctx context.Context, id uint) (*User, error)
 	GetChargingUserByLogin(ctx context.Context, login string) (*User, error)
+
+	AddTokenToBlacklist(ctx context.Context, token string, ttl time.Duration) error
+	IsTokenBlacklisted(ctx context.Context, token string) (bool, error)
 }
 
 type IChargingService interface {
@@ -62,13 +71,13 @@ type IChargingService interface {
 	RegisterChargingUser(ctx context.Context, user *User) (*User, error)
 	GetChargingUserProfile(ctx context.Context, id uint) (*User, error)
 	UpdateChargingUserProfile(ctx context.Context, id uint, userData *User) error
-	LoginChargingUser(ctx context.Context, login, password string) (*User, error)
+	LoginChargingUser(ctx context.Context, login, password string) (string, error)
 	LogoutChargingUser(ctx context.Context, token string) error
+	IsTokenBlacklisted(ctx context.Context, token string) (bool, error)
 }
 
 type IChargingHandler interface {
 	RegisterChargingHandler(r *gin.Engine)
-	RegisterChargingStatic(r *gin.Engine)
 	ErrorHandler(c *gin.Context, err error)
 
 	GetTarrifs(c *gin.Context)               // GET /api/tariffs?tariffName=

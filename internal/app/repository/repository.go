@@ -11,6 +11,7 @@ import (
 type ChargingRepository struct {
 	db *gorm.DB
 	mc domain.ITariffImagesStorage
+	rc domain.ISessionStorage
 }
 
 func NewChargingRepository() (*ChargingRepository, error) {
@@ -24,8 +25,14 @@ func NewChargingRepository() (*ChargingRepository, error) {
 		return nil, fmt.Errorf("error initializing minio client: %v", err)
 	}
 
+	redisClient, err := database.NewRedisClient()
+	if err != nil{
+		return nil, fmt.Errorf("error initializing redis client: %v", err)
+	}
+
 	return &ChargingRepository{
 		db: postgresClient,
 		mc: minioClient,
+		rc: redisClient,
 	}, nil
 }

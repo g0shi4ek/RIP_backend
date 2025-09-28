@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
 	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -86,22 +88,38 @@ func (s *ChargingService) UpdateChargingUserProfile(ctx context.Context, id uint
 	return nil
 }
 
-func (s *ChargingService) LoginChargingUser(ctx context.Context, login, password string) (*domain.User, error) {
+func (s *ChargingService) LoginChargingUser(ctx context.Context, login, password string) (string, error) {
 	existingUser, err := s.chargingRepository.GetChargingUserByLogin(ctx, login)
 	if err != nil {
-		return nil, fmt.Errorf("invalid login credentials")
+		return "", fmt.Errorf("invalid login credentials")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(password))
 	if err != nil {
-		return nil, fmt.Errorf("invalid password")
+		return "", fmt.Errorf("invalid password")
+	}
+
+	token, err := jwt.CreateNewJwtToken(existingUser)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate token: %v", err)
 	}
 
 	log.Printf("user logged in successfully: %d, login: %s", existingUser.Id, existingUser.Login)
-	return existingUser, nil
+
+	return token, nil
 }
 
 func (s *ChargingService) LogoutChargingUser(ctx context.Context, token string) error {
+	log.Println("user token", token)
+	err := s.chargingRepository.AddTokenToBlacklist(ctx, token, 24*time.Hour)
+	if err != nil {
+		return fmt.Errorf("failed to blacklist token: %v", err)
+	}
+
 	log.Printf("user logged out")
 	return nil
+}
+
+func (s * ChargingService) IsTokenBlacklisted(ctx context.Context, token string) (bool, error){
+	return s.chargingRepository.IsTokenBlacklisted(ctx, token)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
@@ -88,7 +89,7 @@ func (h *ChargingHandler) LoginUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.chargingService.LoginChargingUser(ctx, request.Login, request.Password)
+	token, err := h.chargingService.LoginChargingUser(ctx, request.Login, request.Password)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
@@ -96,7 +97,7 @@ func (h *ChargingHandler) LoginUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "login successful",
-		"user":    user,
+		"token":   token,
 	})
 }
 
@@ -104,7 +105,8 @@ func (h *ChargingHandler) LogOutUser(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	token := "bearer: ghjkl"
+	token := c.GetHeader("Authorization")
+	token = strings.TrimPrefix(token, "Bearer ")
 
 	err := h.chargingService.LogoutChargingUser(ctx, token)
 	if err != nil {

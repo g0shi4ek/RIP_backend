@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
 )
@@ -63,4 +64,12 @@ func (r *ChargingRepository) GetChargingUserByLogin(ctx context.Context, login s
 	}
 	log.Printf("repo: user retrieved, %s", login)
 	return &user, nil
+}
+
+func (r *ChargingRepository) AddTokenToBlacklist(ctx context.Context, token string, ttl time.Duration) error {
+	return r.rc.AddToBlacklist(ctx, token, ttl)
+}
+
+func (r *ChargingRepository) IsTokenBlacklisted(ctx context.Context, token string) (bool, error) {
+	return r.rc.IsInBlacklist(ctx, token)
 }

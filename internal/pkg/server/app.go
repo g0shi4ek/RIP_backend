@@ -27,8 +27,7 @@ func (a *Application) RunApp() {
    logrus.Info("Server start up")
 
    a.Handler.RegisterChargingHandler(a.Router)
-   a.Handler.RegisterChargingStatic(a.Router)
-
+   
    serverAddress := fmt.Sprintf("%s:%d", a.Config.ServiceHost, a.Config.ServicePort)
    if err := a.Router.Run(serverAddress); err != nil {
       logrus.Fatal(err)
