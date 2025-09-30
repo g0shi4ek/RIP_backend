@@ -1,0 +1,965 @@
+basePath: /api
+definitions:
+  domain.ApplicationRequest:
+    description: Phone number for charging application
+    properties:
+      phone:
+        type: string
+    required:
+    - phone
+    type: object
+  domain.ChargingApplication:
+    properties:
+      amount_of_orders:
+        type: integer
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      creator_phone:
+        type: string
+      id:
+        type: integer
+      moderator_id:
+        type: integer
+      orders:
+        items:
+          $ref: '#/definitions/domain.ChargingOrder'
+        type: array
+      status:
+        description: draft, deleted, formed, completed, rejected
+        type: string
+      total_price:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  domain.ChargingOrder:
+    properties:
+      application_id:
+        type: integer
+      battery_capacity:
+        type: number
+      calculated_price:
+        description: расчетная стоимость для этой услуги
+        type: number
+      current_percent:
+        type: integer
+      estimated_time:
+        description: расчетное время зарядки в часах
+        type: number
+      id:
+        type: integer
+      start_time:
+        description: if night => price >
+        type: string
+      tariff:
+        $ref: '#/definitions/domain.ChargingTariff'
+      tariff_id:
+        type: integer
+    type: object
+  domain.ChargingTariff:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      is_deleted:
+        type: boolean
+      nameof_tariff:
+        type: string
+      power:
+        description: мощность зарядки в кВт
+        type: number
+      price_per_hour:
+        type: number
+    type: object
+  domain.OrderRequest:
+    description: Charging order data
+    properties:
+      battery_capacity:
+        type: number
+      current_percent:
+        type: integer
+      start_time:
+        type: string
+    required:
+    - battery_capacity
+    - current_percent
+    - start_time
+    type: object
+  domain.TariffRequest:
+    description: Charging tariff data
+    properties:
+      description:
+        type: string
+      nameof_tariff:
+        type: string
+      power:
+        type: number
+      price_per_hour:
+        type: number
+    required:
+    - description
+    - nameof_tariff
+    - power
+    - price_per_hour
+    type: object
+  domain.User:
+    properties:
+      id:
+        type: integer
+      is_moderator:
+        type: boolean
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  domain.UserRequest:
+    description: User login and password for authentication
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for electric vehicle charging station management
+  title: Charging Station API
+  version: "1.0"
+paths:
+  /chargingApplications:
+    delete:
+      consumes:
+      - application/json
+      description: Delete current user's draft charging application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Application deleted successfully
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Application not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete charging application
+      tags:
+      - applications
+    get:
+      consumes:
+      - application/json
+      description: Get list of charging applications with optional filtering
+      parameters:
+      - description: Filter by status (draft, formed, completed, rejected)
+        in: query
+        name: status
+        type: string
+      - description: Start date for filtering (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date for filtering (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ChargingApplication'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get charging applications
+      tags:
+      - applications
+  /chargingApplications/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get specific charging application with its orders
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Application with orders
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Application not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get charging application by ID
+      tags:
+      - applications
+  /chargingApplications/{id}/{action}:
+    put:
+      consumes:
+      - application/json
+      description: Complete or reject charging application (moderator only)
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Action (complete, reject)
+        in: path
+        name: action
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Application status updated
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Application not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update application status by moderator
+      tags:
+      - applications
+  /chargingApplications/draft:
+    get:
+      consumes:
+      - application/json
+      description: Get current user's draft charging application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ChargingApplication'
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get draft charging application
+      tags:
+      - applications
+  /chargingApplications/form:
+    put:
+      consumes:
+      - application/json
+      description: Form (submit) the draft charging application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Application formed successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Form charging application
+      tags:
+      - applications
+  /chargingApplications/phone:
+    put:
+      consumes:
+      - application/json
+      description: Update phone number for current user's draft application
+      parameters:
+      - description: Phone number
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Phone updated successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update application phone number
+      tags:
+      - applications
+  /chargingApplications/tariffs/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Add a charging tariff to current user's draft application
+      parameters:
+      - description: Tariff ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.ChargingOrder'
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Tariff or application not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add tariff to application
+      tags:
+      - orders
+  /chargingOrders/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove charging order from current user's draft application
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order deleted successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Order not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete order from application
+      tags:
+      - orders
+    put:
+      consumes:
+      - application/json
+      description: Update charging order details in draft application
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Order data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.OrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order updated successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Order not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update charging order
+      tags:
+      - orders
+  /tariffs:
+    get:
+      consumes:
+      - application/json
+      description: Get list of charging tariffs with optional filtering
+      parameters:
+      - description: Filter by tariff name
+        in: query
+        name: tariffName
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ChargingTariff'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      summary: Get tariffs
+      tags:
+      - tariffs
+    post:
+      consumes:
+      - application/json
+      description: Create new charging tariff (moderator only)
+      parameters:
+      - description: Tariff data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TariffRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created tariff ID
+          schema:
+            type: integer
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create tariff
+      tags:
+      - tariffs
+  /tariffs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete charging tariff (soft delete) (moderator only)
+      parameters:
+      - description: Tariff ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tariff deleted successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Tariff not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete tariff
+      tags:
+      - tariffs
+    get:
+      consumes:
+      - application/json
+      description: Get specific charging tariff by ID
+      parameters:
+      - description: Tariff ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ChargingTariff'
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "404":
+          description: Tariff not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      summary: Get tariff by ID
+      tags:
+      - tariffs
+    put:
+      consumes:
+      - application/json
+      description: Update existing charging tariff (moderator only)
+      parameters:
+      - description: Tariff ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tariff data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TariffRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tariff updated successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Tariff not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update tariff
+      tags:
+      - tariffs
+  /tariffs/{id}/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload image for charging tariff (moderator only)
+      parameters:
+      - description: Tariff ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tariff image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Image uploaded successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Tariff not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload tariff image
+      tags:
+      - tariffs
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user profile by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: User not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update user profile
+      parameters:
+      - description: User id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: User not found
+          schema:
+            type: object
+        "409":
+          description: Conflict - already exists
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - users
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and get JWT token
+      parameters:
+      - description: User credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login response with token
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      summary: Login user
+      tags:
+      - users
+  /users/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate user's JWT token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register new user account
+      parameters:
+      - description: User credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created id
+          schema:
+            type: integer
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "409":
+          description: Conflict - already exists
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      summary: Register user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
