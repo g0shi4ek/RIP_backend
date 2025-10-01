@@ -21,7 +21,12 @@ func (h *ChargingHandler) GetTarrifs(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, tariffs)
+	var tariffResponse []domain.TariffResponse
+    for _, tariff := range *tariffs {
+        tariffResponse = append(tariffResponse, tariff.ToResponse())
+    }
+
+    c.JSON(http.StatusOK, tariffResponse)
 }
 
 func (h *ChargingHandler) GetChargingTarrifById(c *gin.Context) {
@@ -40,7 +45,7 @@ func (h *ChargingHandler) GetChargingTarrifById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, tariff)
+	c.JSON(http.StatusOK, tariff.ToResponse())
 }
 
 func (h *ChargingHandler) PostChargingTariff(c *gin.Context) {
@@ -59,7 +64,7 @@ func (h *ChargingHandler) PostChargingTariff(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, createdTariff)
+	c.JSON(http.StatusCreated, createdTariff.ToResponse())
 }
 
 func (h *ChargingHandler) UpdateChargingTarrifById(c *gin.Context) {
@@ -79,13 +84,16 @@ func (h *ChargingHandler) UpdateChargingTarrifById(c *gin.Context) {
 	}
 
 	tariff.Id = id
-	err = h.chargingService.UpdateTariff(ctx, &tariff)
+	chargingTariff, err := h.chargingService.UpdateTariff(ctx, &tariff)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "tariff updated successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "tariff updated successfully",
+		"tariff": chargingTariff.ToResponse(),
+	})
 }
 
 func (h *ChargingHandler) DeleteChargingTariff(c *gin.Context) {
@@ -130,11 +138,48 @@ func (h *ChargingHandler) PostChargingTariffImage(c *gin.Context) {
 		return
 	}
 
-	err = h.chargingService.UploadTariffImage(ctx, id, imageData)
+	chargingTariff, err := h.chargingService.UploadTariffImage(ctx, id, imageData)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "image uploaded successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "image uploaded successfully", 
+		"tariff": chargingTariff.ToResponse(),
+	})
+}
+
+func (h *ChargingHandler) AddTariffToApplication(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	tariffId, err := helpers.ValidateID(c.Param("id"))
+	if err != nil {
+		h.ErrorHandler(c, err)
+		return
+	}
+
+	creatorId, err := h.getCurrentUserID(c)
+	if err != nil {
+		h.ErrorHandler(c, err)
+		return
+	}
+
+	draftApplication, err := h.chargingService.GetDraftChargingApplication(ctx, creatorId)
+	if err != nil {
+		h.ErrorHandler(c, err)
+		return
+	}
+
+	chargingOrder, err := h.chargingService.AddChargingOrderToApplication(ctx, tariffId, draftApplication.Id)
+	if err != nil {
+		h.ErrorHandler(c, fmt.Errorf("failed to add tariff to application: %v", err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "tariff successfully added to application",
+		"order": chargingOrder.ToResponse(),
+	})
 }

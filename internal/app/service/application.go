@@ -30,13 +30,13 @@ func (s *ChargingService) GetChargingApplications(ctx context.Context, status, s
 		endTime = time.Date(endTime.Year(), endTime.Month(), endTime.Day(), 23, 59, 59, 999999999, endTime.Location())
 	}
 
-	applicationsList, err := s.chargingRepository.GetAllChargingApplications(ctx)
+	chargingApplications, err := s.chargingRepository.GetAllChargingApplications(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get charging applications: %v", err)
 	}
 
 	var filteredApplications []domain.ChargingApplication
-	for _, chargingApplication := range *applicationsList {
+	for _, chargingApplication := range *chargingApplications {
 		if (status != "" && chargingApplication.Status != status) || chargingApplication.Status == "deleted" || chargingApplication.Status == "canceled" {
 			continue
 		}
@@ -57,7 +57,7 @@ func (s *ChargingService) GetChargingApplications(ctx context.Context, status, s
 }
 
 func (s *ChargingService) GetChargingApplication(ctx context.Context, id uint) (*domain.ChargingApplication, *[]domain.ChargingOrder, error) {
-	application, err := s.chargingRepository.GetChargingApplicationById(ctx, id)
+	chargingApplication, err := s.chargingRepository.GetChargingApplicationById(ctx, id)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get charging application: %v", err)
 	}
@@ -67,7 +67,7 @@ func (s *ChargingService) GetChargingApplication(ctx context.Context, id uint) (
 	}
 
 	log.Printf("get charging application: %d", id)
-	return application, chargingApplicationOrders, nil
+	return chargingApplication, chargingApplicationOrders, nil
 }
 
 func (s *ChargingService) GetDraftChargingApplication(ctx context.Context, creatorId uint) (*domain.ChargingApplication, error) {
@@ -81,7 +81,6 @@ func (s *ChargingService) GetDraftChargingApplication(ctx context.Context, creat
 		Status:         "draft",
 		AmountOfOrders: 0,
 		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
 	}
 
 	err = s.chargingRepository.CreateChargingApplication(ctx, newChargingDraft)
@@ -93,87 +92,92 @@ func (s *ChargingService) GetDraftChargingApplication(ctx context.Context, creat
 	return newChargingDraft, nil
 }
 
-func (s *ChargingService) UpdateChargingApplicationPhone(ctx context.Context, phone string, creatorId uint) error {
-	application, err := s.chargingRepository.GetDraftChargingApplicationByCreator(ctx, creatorId)
+func (s *ChargingService) UpdateChargingApplicationPhone(ctx context.Context, phone string, creatorId uint) (*domain.ChargingApplication, error) {
+	chargingApplication, err := s.chargingRepository.GetDraftChargingApplicationByCreator(ctx, creatorId)
 	if err != nil {
-		return fmt.Errorf("failed to get charging application: %v", err)
+		return nil, fmt.Errorf("failed to get charging application: %v", err)
 	}
 
 	if err := helpers.ValidatePhone(phone); err != nil {
-		return err
+		return nil, err
 	}
 
 	chargingUpdates := map[string]interface{}{
 		"creator_phone": phone,
 	}
-	err = s.chargingRepository.UpdateChargingApplication(ctx, application.Id, chargingUpdates)
+	err = s.chargingRepository.UpdateChargingApplication(ctx, chargingApplication.Id, chargingUpdates)
 	if err != nil {
-		return fmt.Errorf("failed to update phone: %v", err)
+		return nil, fmt.Errorf("failed to update phone: %v", err)
 	}
+	chargingApplication.CreatorPhone = phone
 
 	log.Printf("updated draft for: %d", creatorId)
-	return nil
+	return chargingApplication, nil
 }
 
-func (s *ChargingService) FormChargingApplication(ctx context.Context, creatorId uint) error {
-	application, err := s.chargingRepository.GetDraftChargingApplicationByCreator(ctx, creatorId)
+func (s *ChargingService) FormChargingApplication(ctx context.Context, creatorId uint) (*domain.ChargingApplication, error) {
+	chargingApplication, err := s.chargingRepository.GetDraftChargingApplicationByCreator(ctx, creatorId)
 	if err != nil {
-		return fmt.Errorf("failed to get charging application: %v", err)
+		return nil, fmt.Errorf("failed to get charging application: %v", err)
 	}
 
-	if application.CreatorPhone == "" {
-		return fmt.Errorf("phone number is required to form charging application")
+	if chargingApplication.CreatorPhone == "" {
+		return nil, fmt.Errorf("phone number is required to form charging application")
 	}
 
-	chargingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, application.Id)
+	chargingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, chargingApplication.Id)
 	if err != nil {
-		return fmt.Errorf("failed to get charging application orders: %v", err)
+		return nil, fmt.Errorf("failed to get charging application orders: %v", err)
 	}
 
 	for _, chargingOrder := range *chargingOrders {
 		if err = helpers.ValidateChargingOrder(&chargingOrder); err != nil {
-			return fmt.Errorf("failed to form application: %v", err)
+			return nil, fmt.Errorf("failed to form application: %v", err)
 		}
 	}
 
+	time := time.Now()
 	chargingUpdates := map[string]interface{}{
-		"status": "formed",
+		"formed_at": time,
+		"status":     "formed",
 	}
-	err = s.chargingRepository.UpdateChargingApplication(ctx, application.Id, chargingUpdates)
+	err = s.chargingRepository.UpdateChargingApplication(ctx, chargingApplication.Id, chargingUpdates)
 	if err != nil {
-		return fmt.Errorf("failed to form application: %v", err)
+		return nil, fmt.Errorf("failed to form application: %v", err)
 	}
+	chargingApplication.FormedAt = time
+	chargingApplication.Status = "formed"
 
 	log.Printf("formed application for: %d", creatorId)
-	return nil
+	return chargingApplication, nil
 }
 
-func (s *ChargingService) CompleteChargingApplication(ctx context.Context, id uint, moderatorId uint) error {
-	application, err := s.chargingRepository.GetChargingApplicationById(ctx, id)
+func (s *ChargingService) CompleteChargingApplication(ctx context.Context, id uint, moderatorId uint) (*domain.ChargingApplication, error) {
+	chargingApplication, err := s.chargingRepository.GetChargingApplicationById(ctx, id)
 	if err != nil {
-		return fmt.Errorf("application not found: %v", err)
+		return nil, fmt.Errorf("application not found: %v", err)
 	}
 
-	if application.Status != "formed" {
-		return fmt.Errorf("can only complete formed applications")
+	if chargingApplication.Status != "formed" {
+		return nil, fmt.Errorf("can only complete formed applications")
 	}
 
 	var totalPrice float32
 
-	chargingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, application.Id)
+	chargingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, chargingApplication.Id)
 	if err != nil {
-		return fmt.Errorf("failed to get orders for application: %v", err)
+		return nil, fmt.Errorf("failed to get orders for application: %v", err)
 	}
 
 	for _, chargingOrder := range *chargingOrders {
 		tariff, err := s.chargingRepository.GetTariffById(ctx, chargingOrder.TariffId)
 		if err != nil {
-			return fmt.Errorf("failed to get tariff for order %d: %v", chargingOrder.Id, err)
+			return nil, fmt.Errorf("failed to get tariff for order %d: %v", chargingOrder.Id, err)
 		}
 
 		orderCost, chargingTime, err := helpers.CalculateChargingPriceForOrder(&chargingOrder, tariff)
 		if err != nil {
-			return fmt.Errorf("failed to calculate price for order %d: %v", chargingOrder.Id, err)
+			return nil, fmt.Errorf("failed to calculate price for order %d: %v", chargingOrder.Id, err)
 		}
 
 		orderUpdates := map[string]interface{}{
@@ -183,7 +187,7 @@ func (s *ChargingService) CompleteChargingApplication(ctx context.Context, id ui
 
 		err = s.chargingRepository.UpdateChargingOrder(context.Background(), chargingOrder.Id, orderUpdates)
 		if err != nil {
-			return fmt.Errorf("failed to update order %d: %v", chargingOrder.Id, err)
+			return nil, fmt.Errorf("failed to update order %d: %v", chargingOrder.Id, err)
 		}
 
 		totalPrice += orderCost
@@ -197,48 +201,52 @@ func (s *ChargingService) CompleteChargingApplication(ctx context.Context, id ui
 	}
 	err = s.chargingRepository.UpdateChargingApplication(ctx, id, chargingUpdates)
 	if err != nil {
-		return fmt.Errorf("failed to complete application: %v", err)
+		return nil, fmt.Errorf("failed to complete application: %v", err)
 	}
+
+	respApplication, _ := s.chargingRepository.GetChargingApplicationById(ctx, id)
 
 	log.Printf("completed application %d by %d", id, moderatorId)
-	return nil
+	return respApplication, nil
 }
 
-func (s *ChargingService) RejectChargingApplication(ctx context.Context, id uint, moderatorId uint) error {
-	application, err := s.chargingRepository.GetChargingApplicationById(ctx, id)
+func (s *ChargingService) RejectChargingApplication(ctx context.Context, id uint, moderatorId uint) (*domain.ChargingApplication, error) {
+	chargingApplication, err := s.chargingRepository.GetChargingApplicationById(ctx, id)
 	if err != nil {
-		return fmt.Errorf("application not found: %v", err)
+		return nil, fmt.Errorf("application not found: %v", err)
 	}
 
-	if application.Status != "formed" {
-		return fmt.Errorf("can only complete formed applications")
+	if chargingApplication.Status != "formed" {
+		return nil, fmt.Errorf("can only complete formed applications")
 	}
 
 	chargingUpdates := map[string]interface{}{
 		"status":       "rejected",
 		"moderator_id": moderatorId,
 	}
+	chargingApplication.Status = "rejected"
+	chargingApplication.ModeratorId = moderatorId
 
 	err = s.chargingRepository.UpdateChargingApplication(ctx, id, chargingUpdates)
 	if err != nil {
-		return fmt.Errorf("failed to reject application: %v", err)
+		return nil, fmt.Errorf("failed to reject application: %v", err)
 	}
 
 	log.Printf("rejected application %d by %d", id, moderatorId)
-	return nil
+	return chargingApplication, nil
 }
 
 func (s *ChargingService) DeleteChargingApplication(ctx context.Context, creatorId uint) error {
-	application, err := s.chargingRepository.GetDraftChargingApplicationByCreator(ctx, creatorId)
+	chargingApplication, err := s.chargingRepository.GetDraftChargingApplicationByCreator(ctx, creatorId)
 	if err != nil {
 		return fmt.Errorf("failed to get charging application: %v", err)
 	}
 
-	err = s.chargingRepository.DeleteChargingApplicationById(ctx, application.Id)
+	err = s.chargingRepository.DeleteChargingApplicationById(ctx, chargingApplication.Id)
 	if err != nil {
 		return fmt.Errorf("failed to delete application: %v", err)
 	}
 
-	log.Printf("application deleted: %d", application.Id)
+	log.Printf("application deleted: %d", chargingApplication.Id)
 	return nil
 }

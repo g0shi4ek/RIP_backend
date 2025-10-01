@@ -1,6 +1,5 @@
 ALTER TABLE charging_applications
-ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
-ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
+ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 -- пользователи
 INSERT INTO users (login, password, is_moderator)
 VALUES

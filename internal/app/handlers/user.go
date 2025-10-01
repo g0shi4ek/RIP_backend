@@ -27,7 +27,7 @@ func (h *ChargingHandler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, createdUser)
+	c.JSON(http.StatusCreated, createdUser.ToResponse())
 }
 
 func (h *ChargingHandler) GetUserById(c *gin.Context) {
@@ -46,7 +46,7 @@ func (h *ChargingHandler) GetUserById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, user.ToResponse())
 }
 
 func (h *ChargingHandler) UpdateUser(c *gin.Context) {
@@ -59,42 +59,50 @@ func (h *ChargingHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var user domain.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var userUpdateRequest domain.UserUpdateRequest
+	if err := c.ShouldBindJSON(&userUpdateRequest); err != nil {
 		h.ErrorHandler(c, fmt.Errorf("%w: %v", ErrInvalidRequestBody, err))
 		return
 	}
 
-	err = h.chargingService.UpdateChargingUserProfile(ctx, id, &user)
+	user := domain.User{
+		Id:       id,
+		Login:    userUpdateRequest.Login,
+		Password: userUpdateRequest.Password,
+	}
+
+	newUser, err := h.chargingService.UpdateChargingUserProfile(ctx, id, &user)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user updated successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user updated successfully",
+		"user":    newUser.ToResponse(),
+	})
 }
 
 func (h *ChargingHandler) LoginUser(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	var request struct {
-		Login    string `json:"login" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&request); err != nil {
+	var userRequest domain.UserLoginRequest
+	if err := c.ShouldBindJSON(&userRequest); err != nil {
 		h.ErrorHandler(c, fmt.Errorf("%w: %v", ErrInvalidRequestBody, err))
 		return
 	}
 
-	_, err := h.chargingService.LoginChargingUser(ctx, request.Login, request.Password)
+	newUser, err := h.chargingService.LoginChargingUser(ctx, userRequest.Login, userRequest.Password)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user login successful"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user login successful",
+		"user":    newUser.ToResponse(),
+	})
 }
 
 func (h *ChargingHandler) LogOutUser(c *gin.Context) {

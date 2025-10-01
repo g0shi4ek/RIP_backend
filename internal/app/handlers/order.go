@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -11,96 +10,66 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *ChargingHandler) AddTariffToApplication(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
-	defer cancel()
-
-	tariffId, err := helpers.ValidateID(c.Param("id"))
-	if err != nil {
-		h.ErrorHandler(c, err)
-		return
-	}
-
-	creatorId, err := h.getCurrentUserID(c)
-	if err != nil {
-		h.ErrorHandler(c, err)
-		return
-	}
-
-	draftApplication, err := h.chargingService.GetDraftChargingApplication(ctx, creatorId)
-	if err != nil {
-		h.ErrorHandler(c, err)
-		return
-	}
-
-	_, err = h.chargingService.AddChargingOrderToApplication(ctx, tariffId, draftApplication.Id)
-	if err != nil {
-		h.ErrorHandler(c, fmt.Errorf("failed to add tariff to application: %v", err))
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "order successfully added to application"})
-}
-
 func (h *ChargingHandler) DeleteChargingOrderFromApplication(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	orderId, err := helpers.ValidateID(c.Param("id"))
+	chargingOrderId, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	_, err = h.chargingService.RemoveChargingOrderFromApplication(ctx, orderId)
+	updatedApplication, err := h.chargingService.RemoveChargingOrderFromApplication(ctx, chargingOrderId)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "order deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{
+        "message":     "order deleted successfully",
+        "application": updatedApplication.ToResponse(),
+    })
 }
 
 func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	orderId, err := helpers.ValidateID(c.Param("id"))
+	chargingOrderId, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	var orderRequest struct {
-		BatteryCapacity float32 `json:"battery_capacity" binding:"required"`
-		CurrentPercent  int     `json:"current_percent" binding:"required"`
-		StartTime       string  `json:"start_time" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&orderRequest); err != nil {
+	var chargingOrderRequest domain.ChargingOrderRequest
+	if err := c.ShouldBindJSON(&chargingOrderRequest); err != nil {
 		h.ErrorHandler(c, ErrInvalidRequestBody)
 		return
 	}
 	location, _ := time.LoadLocation("Local")
 
-	startTime, err := time.ParseInLocation("15:04", orderRequest.StartTime, location)
+	startTime, err := time.ParseInLocation("15:04", chargingOrderRequest.StartTime, location)
 	if err != nil {
 		h.ErrorHandler(c, ErrInvalidRequestBody)
 		return
 	}
 
-	order := domain.ChargingOrder{
-		Id:              orderId,
-		BatteryCapacity: orderRequest.BatteryCapacity,
-		CurrentPercent:  orderRequest.CurrentPercent,
+	chargingOrder := domain.ChargingOrder{
+		Id:              chargingOrderId,
+		BatteryCapacity: chargingOrderRequest.BatteryCapacity,
+		CurrentPercent:  chargingOrderRequest.CurrentPercent,
 		StartTime:       startTime,
 	}
 
-	err = h.chargingService.UpdateChargingOrder(ctx, &order)
+	newChargingOrder, err := h.chargingService.UpdateChargingOrder(ctx, &chargingOrder)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "order updated successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "order updated successfully",
+		"order": newChargingOrder.ToResponse(),
+	})
 }
