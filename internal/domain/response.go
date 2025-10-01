@@ -29,7 +29,6 @@ type ChargingApplicationResponse struct {
 	ModeratorId    uint                    `json:"moderator_id,omitempty"`
 	CreatorPhone   string                  `json:"creator_phone,omitempty"`
 	AmountOfOrders uint                    `json:"amount_of_orders"`
-	Orders         []ChargingOrderResponse `json:"orders,omitempty"`
 }
 
 type UserResponse struct {
@@ -63,11 +62,6 @@ func (t *ChargingTariff) ToResponse() TariffResponse {
 }
 
 func (a *ChargingApplication) ToResponse() ChargingApplicationResponse {
-	var orderResponses []ChargingOrderResponse
-	for _, order := range a.Orders {
-		orderResponses = append(orderResponses, order.ToResponse())
-	}
-
 	return ChargingApplicationResponse{
 		Id:             a.Id,
 		TotalPrice:     a.TotalPrice,
@@ -75,7 +69,6 @@ func (a *ChargingApplication) ToResponse() ChargingApplicationResponse {
 		ModeratorId:    a.ModeratorId,
 		CreatorPhone:   a.CreatorPhone,
 		AmountOfOrders: a.AmountOfOrders,
-		Orders:         orderResponses,
 	}
 }
 
