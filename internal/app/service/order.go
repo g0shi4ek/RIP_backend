@@ -16,13 +16,13 @@ func (s *ChargingService) AddChargingOrderToApplication(ctx context.Context, tar
 		return nil, fmt.Errorf("tariff not found: %v", err)
 	}
 
-	existingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, applicationId)
+	chargingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, applicationId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing orders: %v", err)
 	}
 
-	for _, order := range *existingOrders {
-		if order.TariffId == tariffId {
+	for _, chargingOrder := range *chargingOrders {
+		if chargingOrder.TariffId == tariffId {
 			return nil, fmt.Errorf("tariff already exists in application")
 		}
 	}
@@ -42,46 +42,51 @@ func (s *ChargingService) AddChargingOrderToApplication(ctx context.Context, tar
 		return nil, fmt.Errorf("failed to create charging order: %v", err)
 	}
 
+	existingOrder, err := s.chargingRepository.GetChargingOrderById(ctx, newChargingOrder.Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get charging application: %v", err)
+	}
+
 	log.Printf("charging order added: application=%d, tariff=%d", applicationId, tariffId)
-	return newChargingOrder, nil
+	return existingOrder, nil
 }
 
 func (s *ChargingService) RemoveChargingOrderFromApplication(ctx context.Context, orderId uint) (*domain.ChargingApplication, error) {
-	existingOrder, err := s.chargingRepository.GetChargingOrderById(ctx, orderId)
+	chargingOrder, err := s.chargingRepository.GetChargingOrderById(ctx, orderId)
 	if err != nil {
 		return nil, fmt.Errorf("charging order not found: %v", err)
 	}
 
-	err = s.chargingRepository.DeleteChargingOrder(ctx, orderId, existingOrder.ApplicationId)
+	err = s.chargingRepository.DeleteChargingOrder(ctx, orderId, chargingOrder.ApplicationId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete charging order: %v", err)
 	}
 
-	existingApplication, err := s.chargingRepository.GetChargingApplicationById(ctx, existingOrder.ApplicationId)
+	existingApplication, err := s.chargingRepository.GetChargingApplicationById(ctx, chargingOrder.ApplicationId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get charging application: %v", err)
 	}
 
 	// надо удалять черновик, если из удалили все услуги?
-	if existingApplication.AmountOfOrders == 0 {
-		err := s.chargingRepository.DeleteChargingApplicationById(ctx, existingOrder.ApplicationId)
+	/*if existingApplication.AmountOfOrders == 0 {
+		err := s.chargingRepository.DeleteChargingApplicationById(ctx, chargingOrder.ApplicationId)
 		if err != nil {
 			return nil, fmt.Errorf("failed to delete empty application: %v", err)
 		}
-	}
+	}*/
 
-	log.Printf("charging order removed: id=%d, application=%d", orderId, existingOrder.ApplicationId)
-	return &existingOrder.Application, nil
+	log.Printf("charging order removed: id=%d, application=%d", orderId, chargingOrder.ApplicationId)
+	return existingApplication, nil
 }
 
-func (s *ChargingService) UpdateChargingOrder(ctx context.Context, chargingOrder *domain.ChargingOrder) error {
+func (s *ChargingService) UpdateChargingOrder(ctx context.Context, chargingOrder *domain.ChargingOrder) (*domain.ChargingOrder, error) {
 	_, err := s.chargingRepository.GetChargingOrderById(ctx, chargingOrder.Id)
 	if err != nil {
-		return fmt.Errorf("charging order not found: %v", err)
+		return nil, fmt.Errorf("charging order not found: %v", err)
 	}
 
 	if err := helpers.ValidateChargingOrder(chargingOrder); err != nil {
-		return err
+		return nil, err
 	}
 
 	chargingUpdates := map[string]interface{}{
@@ -94,9 +99,14 @@ func (s *ChargingService) UpdateChargingOrder(ctx context.Context, chargingOrder
 
 	err = s.chargingRepository.UpdateChargingOrder(ctx, chargingOrder.Id, chargingUpdates)
 	if err != nil {
-		return fmt.Errorf("failed to update charging order: %v", err)
+		return nil, fmt.Errorf("failed to update charging order: %v", err)
+	}
+
+	newOrder, err := s.chargingRepository.GetChargingOrderById(ctx, chargingOrder.Id)
+	if err != nil {
+		return nil, fmt.Errorf("charging order not found: %v", err)
 	}
 
 	log.Printf("charging order updated: id=%d", chargingOrder.Id)
-	return nil
+	return newOrder, nil
 }

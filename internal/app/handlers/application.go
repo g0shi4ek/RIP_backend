@@ -40,7 +40,12 @@ func (h *ChargingHandler) GetChargingApplications(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, chargingApplications)
+	var chargingAppResponse []domain.ChargingApplicationResponse
+    for _, app := range *chargingApplications{
+        chargingAppResponse = append(chargingAppResponse, app.ToResponse())
+    }
+
+    c.JSON(http.StatusOK, chargingAppResponse)
 }
 
 // GetChargingApplicationById godoc
@@ -72,12 +77,17 @@ func (h *ChargingHandler) GetChargingApplicationById(c *gin.Context) {
 		h.ErrorHandler(c, err)
 		return
 	}
-	chargingResponse := gin.H{
-		"application": resultApplication,
-		"orders":      chargingOrders,
-	}
+	var orderResponses []domain.ChargingOrderResponse
+    for _, order := range *chargingOrders {
+        orderResponses = append(orderResponses, order.ToResponse())
+    }
 
-	c.JSON(http.StatusOK, chargingResponse)
+    chargingResponse := gin.H{
+        "application": resultApplication.ToResponse(),
+        "orders":      orderResponses,
+    }
+
+    c.JSON(http.StatusOK, chargingResponse)
 }
 
 // GetDraftChargingApplication godoc
@@ -108,7 +118,7 @@ func (h *ChargingHandler) GetDraftChargingApplication(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, draftApplication)
+	c.JSON(http.StatusOK, draftApplication.ToResponse())
 }
 
 // UpdateChargingApplicationPhone godoc
@@ -135,19 +145,22 @@ func (h *ChargingHandler) UpdateChargingApplicationPhone(c *gin.Context) {
 		return
 	}
 
-	var request domain.ApplicationRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
+	var phoneRequest domain.PhoneRequest
+	if err := c.ShouldBindJSON(&phoneRequest); err != nil {
 		h.ErrorHandler(c, fmt.Errorf("%w: %v", ErrInvalidRequestBody, err))
 		return
 	}
 
-	err = h.chargingService.UpdateChargingApplicationPhone(ctx, request.Phone, creatorId)
+	chargingApplication, err := h.chargingService.UpdateChargingApplicationPhone(ctx, phoneRequest.Phone, creatorId)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "phone updated successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "phone updated successfully",
+		"application": chargingApplication.ToResponse(),
+	})
 }
 
 // UpdateChargingApplicationByCreator godoc
@@ -173,13 +186,16 @@ func (h *ChargingHandler) UpdateChargingApplicationByCreator(c *gin.Context) {
 		return
 	}
 
-	err = h.chargingService.FormChargingApplication(ctx, creatorId)
+	chargingApplication, err := h.chargingService.FormChargingApplication(ctx, creatorId)
 	if err != nil {
 		h.ErrorHandler(c, fmt.Errorf("failed to form application: %v", err))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "application formed successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "application formed successfully",
+		"application": chargingApplication.ToResponse(),
+	})
 }
 
 // UpdateChargingApplicationByModerator godoc
@@ -215,11 +231,12 @@ func (h *ChargingHandler) UpdateChargingApplicationByModerator(c *gin.Context) {
 	}
 
 	action := c.Param("action")
+	var chargingApplication *domain.ChargingApplication
 	switch action {
 	case "complete":
-		err = h.chargingService.CompleteChargingApplication(ctx, id, moderatorId)
+		chargingApplication, err = h.chargingService.CompleteChargingApplication(ctx, id, moderatorId)
 	case "reject":
-		err = h.chargingService.RejectChargingApplication(ctx, id, moderatorId)
+		chargingApplication, err = h.chargingService.RejectChargingApplication(ctx, id, moderatorId)
 	default:
 		h.ErrorHandler(c, fmt.Errorf("invalid action: %s", action))
 		return
@@ -230,7 +247,10 @@ func (h *ChargingHandler) UpdateChargingApplicationByModerator(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("application %s successfully", action)})
+	c.JSON(http.StatusOK, gin.H{
+		"message": fmt.Sprintf("application %s successfully", action),
+		"application": chargingApplication.ToResponse(),
+	})
 }
 
 // DeleteChargingApplicationById godoc

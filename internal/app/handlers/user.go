@@ -28,7 +28,7 @@ func (h *ChargingHandler) RegisterUser(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	var request domain.UserRequest
+	var request domain.UserLoginRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		h.ErrorHandler(c, fmt.Errorf("%w: %v", ErrInvalidRequestBody, err))
 		return
@@ -45,7 +45,7 @@ func (h *ChargingHandler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, createdUser.Id)
+	c.JSON(http.StatusCreated, createdUser.ToResponse())
 }
 
 // GetUserById godoc
@@ -78,7 +78,7 @@ func (h *ChargingHandler) GetUserById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, user.ToResponse())
 }
 
 // UpdateUser godoc
@@ -107,24 +107,28 @@ func (h *ChargingHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var request domain.UserRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
+	var userUpdateRequest domain.UserUpdateRequest
+	if err := c.ShouldBindJSON(&userUpdateRequest); err != nil {
 		h.ErrorHandler(c, fmt.Errorf("%w: %v", ErrInvalidRequestBody, err))
 		return
 	}
 
 	user := domain.User{
-		Login:    request.Login,
-		Password: request.Password,
+		Id:       id,
+		Login:    userUpdateRequest.Login,
+		Password: userUpdateRequest.Password,
 	}
 
-	err = h.chargingService.UpdateChargingUserProfile(ctx, id, &user)
+	newUser, err := h.chargingService.UpdateChargingUserProfile(ctx, id, &user)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user updated successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user updated successfully",
+		"user":    newUser.ToResponse(),
+	})
 }
 
 // LoginUser godoc
@@ -143,13 +147,13 @@ func (h *ChargingHandler) LoginUser(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	var request domain.UserRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
+	var userRequest domain.UserLoginRequest
+	if err := c.ShouldBindJSON(&userRequest); err != nil {
 		h.ErrorHandler(c, fmt.Errorf("%w: %v", ErrInvalidRequestBody, err))
 		return
 	}
 
-	token, err := h.chargingService.LoginChargingUser(ctx, request.Login, request.Password)
+	token, err := h.chargingService.LoginChargingUser(ctx, userRequest.Login, userRequest.Password)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return

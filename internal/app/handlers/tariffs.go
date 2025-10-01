@@ -31,7 +31,12 @@ func (h *ChargingHandler) GetTarrifs(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, tariffs)
+	var tariffResponse []domain.TariffResponse
+    for _, tariff := range *tariffs {
+        tariffResponse = append(tariffResponse, tariff.ToResponse())
+    }
+
+    c.JSON(http.StatusOK, tariffResponse)
 }
 
 // GetChargingTarrifById godoc
@@ -62,7 +67,7 @@ func (h *ChargingHandler) GetChargingTarrifById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, tariff)
+	c.JSON(http.StatusOK, tariff.ToResponse())
 }
 
 // PostChargingTariff godoc
@@ -102,7 +107,7 @@ func (h *ChargingHandler) PostChargingTariff(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, createdTariff.Id)
+	c.JSON(http.StatusCreated, createdTariff.ToResponse())
 }
 
 // UpdateChargingTarrifById godoc
@@ -145,13 +150,16 @@ func (h *ChargingHandler) UpdateChargingTarrifById(c *gin.Context) {
 		Power:        request.Power,
 	}
 
-	err = h.chargingService.UpdateTariff(ctx, &tariff)
+	chargingTariff, err := h.chargingService.UpdateTariff(ctx, &tariff)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "tariff updated successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "tariff updated successfully",
+		"tariff": chargingTariff.ToResponse(),
+	})
 }
 
 // DeleteChargingTariff godoc
@@ -227,11 +235,14 @@ func (h *ChargingHandler) PostChargingTariffImage(c *gin.Context) {
 		return
 	}
 
-	err = h.chargingService.UploadTariffImage(ctx, id, imageData)
+	chargingTariff, err := h.chargingService.UploadTariffImage(ctx, id, imageData)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "image uploaded successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "image uploaded successfully",
+		"tariff": chargingTariff.ToResponse(),
+	})
 }

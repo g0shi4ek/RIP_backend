@@ -41,7 +41,7 @@ type ChargingApplication struct {
 	AmountOfOrders uint            `gorm:"default:0" json:"amount_of_orders"`
 	Status         string          `gorm:"type:varchar(20);not null;default:'draft'" json:"status"` // draft, deleted, formed, completed, rejected
 	CreatedAt      time.Time       `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt      time.Time       `gorm:"autoUpdateTime" json:"updated_at"`
+	FormedAt       time.Time       `gorm:"default:null" json:"formed_at,omitempty"`
 	CompletedAt    time.Time       `gorm:"default:null" json:"completed_at,omitempty"`
 	Orders         []ChargingOrder `gorm:"foreignKey:ApplicationId" json:"orders,omitempty"`
 }

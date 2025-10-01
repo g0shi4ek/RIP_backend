@@ -64,12 +64,26 @@ func ValidateTariff(tariff *domain.ChargingTariff) error {
 }
 
 func ValidateUser(user *domain.User) error {
+	if err :=  ValidateUserLogin(user); err!= nil{
+		return err
+	}
+	if err := ValidateUserPassword(user); err != nil{
+		return err
+	}
+	return nil
+}
+
+func ValidateUserLogin(user *domain.User) error {
 	if strings.TrimSpace(user.Login) == "" {
 		return ErrInvalidLogin
 	}
 	if len(user.Login) < 3 {
 		return ErrInvalidLogin
 	}
+	return nil
+}
+
+func ValidateUserPassword(user *domain.User) error {
 	if strings.TrimSpace(user.Password) == "" {
 		return ErrInvalidPassword
 	}

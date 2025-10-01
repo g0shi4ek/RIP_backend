@@ -76,19 +76,22 @@ func (h *ChargingHandler) DeleteChargingOrderFromApplication(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	orderId, err := helpers.ValidateID(c.Param("id"))
+	chargingOrderId, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	_, err = h.chargingService.RemoveChargingOrderFromApplication(ctx, orderId)
+	updatedApplication, err := h.chargingService.RemoveChargingOrderFromApplication(ctx, chargingOrderId)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK,  gin.H{"message": "order successfully deleted from application"})
+	c.JSON(http.StatusOK, gin.H{
+        "message":     "order deleted successfully",
+        "application": updatedApplication.ToResponse(),
+    })
 }
 
 // UpdateChargingOrder godoc
@@ -111,37 +114,40 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	orderId, err := helpers.ValidateID(c.Param("id"))
+	chargingOrderId, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	var request domain.OrderRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
+	var chargingOrderRequest domain.ChargingOrderRequest
+	if err := c.ShouldBindJSON(&chargingOrderRequest); err != nil {
 		h.ErrorHandler(c, ErrInvalidRequestBody)
 		return
 	}
 	location, _ := time.LoadLocation("Local")
 
-	startTime, err := time.ParseInLocation("15:04", request.StartTime, location)
+	startTime, err := time.ParseInLocation("15:04", chargingOrderRequest.StartTime, location)
 	if err != nil {
 		h.ErrorHandler(c, ErrInvalidRequestBody)
 		return
 	}
 
-	order := domain.ChargingOrder{
-		Id:              orderId,
-		BatteryCapacity: request.BatteryCapacity,
-		CurrentPercent:  request.CurrentPercent,
+	chargingOrder := domain.ChargingOrder{
+		Id:              chargingOrderId,
+		BatteryCapacity: chargingOrderRequest.BatteryCapacity,
+		CurrentPercent:  chargingOrderRequest.CurrentPercent,
 		StartTime:       startTime,
 	}
 
-	err = h.chargingService.UpdateChargingOrder(ctx, &order)
+	newChargingOrder, err := h.chargingService.UpdateChargingOrder(ctx, &chargingOrder)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "order updated successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "order updated successfully",
+		"order": newChargingOrder.ToResponse(),
+	})
 }

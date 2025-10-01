@@ -51,26 +51,26 @@ type IChargingService interface {
 	GetTariffs(ctx context.Context, tariffName string) (*[]ChargingTariff, error)
 	GetTariff(ctx context.Context, id uint) (*ChargingTariff, error)
 	CreateTariff(ctx context.Context, tariff *ChargingTariff) (*ChargingTariff, error)
-	UpdateTariff(ctx context.Context, tariff *ChargingTariff) error
+	UpdateTariff(ctx context.Context, tariff *ChargingTariff) (*ChargingTariff, error)
 	DeleteTariff(ctx context.Context, id uint) error
-	UploadTariffImage(ctx context.Context, id uint, tariffImage []byte) error
+	UploadTariffImage(ctx context.Context, id uint, tariffImage []byte) (*ChargingTariff, error)
+	AddChargingOrderToApplication(ctx context.Context, tariffId uint, applicationId uint) (*ChargingOrder, error)
 
 	GetChargingApplications(ctx context.Context, status, startDate, endDate string) (*[]ChargingApplication, error)
 	GetChargingApplication(ctx context.Context, id uint) (*ChargingApplication, *[]ChargingOrder, error)
 	GetDraftChargingApplication(ctx context.Context, creatorId uint) (*ChargingApplication, error)
-	UpdateChargingApplicationPhone(ctx context.Context, phone string, creatorId uint) error
-	FormChargingApplication(ctx context.Context, creatorId uint) error
-	CompleteChargingApplication(ctx context.Context, id uint, moderatorId uint) error
-	RejectChargingApplication(ctx context.Context, id uint, moderatorId uint) error
+	UpdateChargingApplicationPhone(ctx context.Context, phone string, creatorId uint) (*ChargingApplication, error)
+	FormChargingApplication(ctx context.Context, creatorId uint) (*ChargingApplication, error)
+	CompleteChargingApplication(ctx context.Context, id uint, moderatorId uint) (*ChargingApplication, error)
+	RejectChargingApplication(ctx context.Context, id uint, moderatorId uint) (*ChargingApplication, error)
 	DeleteChargingApplication(ctx context.Context, creatorId uint) error
 
-	AddChargingOrderToApplication(ctx context.Context, tariffId uint, applicationId uint) (*ChargingOrder, error)
 	RemoveChargingOrderFromApplication(ctx context.Context, orderId uint) (*ChargingApplication, error)
-	UpdateChargingOrder(ctx context.Context, chargingOrder *ChargingOrder) error
+	UpdateChargingOrder(ctx context.Context, chargingOrder *ChargingOrder) (*ChargingOrder, error)
 
 	RegisterChargingUser(ctx context.Context, user *User) (*User, error)
 	GetChargingUserProfile(ctx context.Context, id uint) (*User, error)
-	UpdateChargingUserProfile(ctx context.Context, id uint, userData *User) error
+	UpdateChargingUserProfile(ctx context.Context, id uint, userData *User) (*User, error)
 	LoginChargingUser(ctx context.Context, login, password string) (string, error)
 	LogoutChargingUser(ctx context.Context, token string) error
 	IsTokenBlacklisted(ctx context.Context, token string) (bool, error)
@@ -86,6 +86,7 @@ type IChargingHandler interface {
 	UpdateChargingTarrifById(c *gin.Context) // PUT /api/tariffs/:id
 	DeleteChargingTariff(c *gin.Context)     // DELETE /api/tariffs/:id
 	PostChargingTariffImage(c *gin.Context)  // POST /api/tariffs/:id/image
+	AddTariffToApplication(c *gin.Context)   // POST /api/chargingApplications/tariffs/:id
 
 	GetChargingApplications(c *gin.Context)              // GET /api/chargingApplications?status=&start_date=&end_date=
 	GetChargingApplicationById(c *gin.Context)           // GET /api/chargingApplications/:id
@@ -95,7 +96,6 @@ type IChargingHandler interface {
 	UpdateChargingApplicationByModerator(c *gin.Context) // PUT /api/chargingApplications/:id/complete или /reject
 	DeleteChargingApplicationById(c *gin.Context)        // DELETE /api/chargingApplications/:id
 
-	AddTariffToApplication(c *gin.Context)             // POST /api/chargingApplications//tariffs/:id
 	DeleteChargingOrderFromApplication(c *gin.Context) // DELETE /api/chargingOrders/:id
 	UpdateChargingOrder(c *gin.Context)                // PUT /api/chargingOrders/:id
 

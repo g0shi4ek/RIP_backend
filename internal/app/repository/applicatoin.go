@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
 )
@@ -24,8 +23,6 @@ func (r *ChargingRepository) UpdateChargingApplication(ctx context.Context, id u
 		return nil
 	}
 
-	chargingUpdates["updated_at"] = time.Now()
-
 	err := r.db.WithContext(ctx).
 		Model(&domain.ChargingApplication{}).
 		Where("id = ?", id).
@@ -38,7 +35,6 @@ func (r *ChargingRepository) UpdateChargingApplication(ctx context.Context, id u
 	log.Printf("repo: application updated, %d", id)
 	return nil
 }
-
 
 func (r *ChargingRepository) GetDraftChargingApplicationByCreator(ctx context.Context, creatorId uint) (*domain.ChargingApplication, error) {
 	var application domain.ChargingApplication
@@ -87,10 +83,9 @@ func (r *ChargingRepository) GetAllChargingApplications(ctx context.Context) (*[
 	return &chargingApplications, nil
 }
 
-
 func (r *ChargingRepository) DeleteChargingApplicationById(ctx context.Context, id uint) error {
 	// SQL UPDATE без ORM
-	query := "UPDATE charging_applications SET status = 'deleted', updated_at = NOW() WHERE id = ?"
+	query := "UPDATE charging_applications SET status = 'deleted' WHERE id = ?"
 	err := r.db.WithContext(ctx).Exec(query, id).Error
 
 	if err != nil {
