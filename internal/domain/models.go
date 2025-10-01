@@ -11,11 +11,11 @@ type ChargingOrder struct {
 	TariffId        uint                `gorm:"not null;uniqueIndex:idx_order_unique" json:"tariff_id"`
 	Application     ChargingApplication `gorm:"foreignKey:ApplicationId" json:"-"`
 	Tariff          ChargingTariff      `gorm:"foreignKey:TariffId" json:"tariff"`
-	BatteryCapacity float32             `gorm:"not null" json:"battery_capacity"`
-	CurrentPercent  int                 `gorm:"not null" json:"current_percent"`
-	StartTime       time.Time           `gorm:"not null" json:"start_time"` // if night => price >
-	EstimatedTime   float32             `json:"estimated_time"`             // расчетное время зарядки в часах
-	CalculatedPrice float32             `json:"calculated_price"`           // расчетная стоимость для этой услуги
+	BatteryCapacity float32             `gorm:"null" json:"battery_capacity,omitempty"`
+	CurrentPercent  int                 `gorm:"null" json:"current_percent,omitempty"`
+	StartTime       time.Time           `gorm:"not null;default:CURRENT_TIMESTAMP" json:"start_time"` // if night => price >
+	EstimatedTime   float32             `json:"estimated_time"`                                       // расчетное время зарядки в часах
+	CalculatedPrice float32             `json:"calculated_price"`                                     // расчетная стоимость для этой услуги
 }
 
 // Service
@@ -40,7 +40,7 @@ type ChargingApplication struct {
 	CreatorPhone   string          `json:"creator_phone,omitempty"`
 	AmountOfOrders uint            `gorm:"default:0" json:"amount_of_orders"`
 	Status         string          `gorm:"type:varchar(20);not null;default:'draft'" json:"status"` // draft, deleted, formed, completed, rejected
-	CreatedAt      time.Time       `gorm:"autoCreateTime" json:"created_at"`
+	CreatedAt      time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	FormedAt       time.Time       `gorm:"default:null" json:"formed_at,omitempty"`
 	CompletedAt    time.Time       `gorm:"default:null" json:"completed_at,omitempty"`
 	Orders         []ChargingOrder `gorm:"foreignKey:ApplicationId" json:"orders,omitempty"`

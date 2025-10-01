@@ -31,10 +31,14 @@ type ChargingApplicationResponse struct {
 	AmountOfOrders uint                    `json:"amount_of_orders"`
 }
 
+type ChargingDraftResponse struct {
+	Id             uint                    `json:"id"`
+	AmountOfOrders uint                    `json:"amount_of_orders"`
+}
+
 type UserResponse struct {
 	Id          uint   `json:"id"`
 	Login       string `json:"login"`
-	IsModerator bool   `json:"is_moderator"`
 }
 
 func (o *ChargingOrder) ToResponse() ChargingOrderResponse {
@@ -72,10 +76,16 @@ func (a *ChargingApplication) ToResponse() ChargingApplicationResponse {
 	}
 }
 
+func (a *ChargingApplication) ToDraftResponse() ChargingDraftResponse {
+	return ChargingDraftResponse{
+		Id:             a.Id,
+		AmountOfOrders: a.AmountOfOrders,
+	}
+}
+
 func (u *User) ToResponse() UserResponse {
 	return UserResponse{
 		Id:          u.Id,
 		Login:       u.Login,
-		IsModerator: u.IsModerator,
 	}
 }

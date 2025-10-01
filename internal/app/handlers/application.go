@@ -15,9 +15,9 @@ func (h *ChargingHandler) GetChargingApplications(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	chargingApplications, err := h.chargingService.GetChargingApplications(ctx, 
-		c.Query("status"), 
-		c.Query("start_date"), 
+	chargingApplications, err := h.chargingService.GetChargingApplications(ctx,
+		c.Query("status"),
+		c.Query("start_date"),
 		c.Query("end_date"))
 	if err != nil {
 		h.ErrorHandler(c, err)
@@ -25,11 +25,11 @@ func (h *ChargingHandler) GetChargingApplications(c *gin.Context) {
 	}
 
 	var chargingAppResponse []domain.ChargingApplicationResponse
-    for _, app := range *chargingApplications{
-        chargingAppResponse = append(chargingAppResponse, app.ToResponse())
-    }
+	for _, app := range *chargingApplications {
+		chargingAppResponse = append(chargingAppResponse, app.ToResponse())
+	}
 
-    c.JSON(http.StatusOK, chargingAppResponse)
+	c.JSON(http.StatusOK, chargingAppResponse)
 }
 
 func (h *ChargingHandler) GetChargingApplicationById(c *gin.Context) {
@@ -48,16 +48,16 @@ func (h *ChargingHandler) GetChargingApplicationById(c *gin.Context) {
 		return
 	}
 	var orderResponses []domain.ChargingOrderResponse
-    for _, order := range *chargingOrders {
-        orderResponses = append(orderResponses, order.ToResponse())
-    }
+	for _, order := range *chargingOrders {
+		orderResponses = append(orderResponses, order.ToResponse())
+	}
 
-    chargingResponse := gin.H{
-        "application": resultApplication.ToResponse(),
-        "orders":      orderResponses,
-    }
+	chargingResponse := gin.H{
+		"charging_application": resultApplication.ToResponse(),
+		"charging_orders":      orderResponses,
+	}
 
-    c.JSON(http.StatusOK, chargingResponse)
+	c.JSON(http.StatusOK, chargingResponse)
 }
 
 func (h *ChargingHandler) GetDraftChargingApplication(c *gin.Context) {
@@ -70,13 +70,13 @@ func (h *ChargingHandler) GetDraftChargingApplication(c *gin.Context) {
 		return
 	}
 
-	draftApplication, err := h.chargingService.GetDraftChargingApplication(ctx, creatorId)
+	draftApplication, err := h.chargingService.GetDraftChargingApplicationIfExist(ctx, creatorId)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, draftApplication.ToResponse())
+	c.JSON(http.StatusOK, draftApplication.ToDraftResponse())
 }
 
 func (h *ChargingHandler) UpdateChargingApplicationPhone(c *gin.Context) {
@@ -102,8 +102,8 @@ func (h *ChargingHandler) UpdateChargingApplicationPhone(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "phone updated successfully",
-		"application": chargingApplication.ToResponse(),
+		"message":     "phone updated successfully",
+		"charging_application": chargingApplication.ToResponse(),
 	})
 }
 
@@ -124,8 +124,8 @@ func (h *ChargingHandler) UpdateChargingApplicationByCreator(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "application formed successfully",
-		"application": chargingApplication.ToResponse(),
+		"message":     "application formed successfully",
+		"charging_application": chargingApplication.ToResponse(),
 	})
 }
 
@@ -163,8 +163,8 @@ func (h *ChargingHandler) UpdateChargingApplicationByModerator(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": fmt.Sprintf("application %s successfully", action),
-		"application": chargingApplication.ToResponse(),
+		"message":     fmt.Sprintf("application %s successfully", action),
+		"charging_application": chargingApplication.ToResponse(),
 	})
 }
 

@@ -92,7 +92,7 @@ func (h *ChargingHandler) UpdateChargingTarrifById(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "tariff updated successfully",
-		"tariff": chargingTariff.ToResponse(),
+		"charging_tariff": chargingTariff.ToResponse(),
 	})
 }
 
@@ -146,7 +146,7 @@ func (h *ChargingHandler) PostChargingTariffImage(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "image uploaded successfully", 
-		"tariff": chargingTariff.ToResponse(),
+		"charging_tariff": chargingTariff.ToResponse(),
 	})
 }
 
@@ -180,6 +180,6 @@ func (h *ChargingHandler) AddTariffToApplication(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "tariff successfully added to application",
-		"order": chargingOrder.ToResponse(),
+		"charging_order": chargingOrder.ToResponse(),
 	})
 }

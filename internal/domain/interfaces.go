@@ -50,6 +50,7 @@ type IChargingService interface {
 	GetChargingApplications(ctx context.Context, status, startDate, endDate string) (*[]ChargingApplication, error)
 	GetChargingApplication(ctx context.Context, id uint) (*ChargingApplication, *[]ChargingOrder, error)
 	GetDraftChargingApplication(ctx context.Context, creatorId uint) (*ChargingApplication, error)
+	GetDraftChargingApplicationIfExist(ctx context.Context, creatorId uint) (*ChargingApplication, error)
 	UpdateChargingApplicationPhone(ctx context.Context, phone string, creatorId uint) (*ChargingApplication, error)
 	FormChargingApplication(ctx context.Context, creatorId uint) (*ChargingApplication, error)
 	CompleteChargingApplication(ctx context.Context, id uint, moderatorId uint) (*ChargingApplication, error)

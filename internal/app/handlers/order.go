@@ -28,7 +28,7 @@ func (h *ChargingHandler) DeleteChargingOrderFromApplication(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
         "message":     "order deleted successfully",
-        "application": updatedApplication.ToResponse(),
+        "charging_application": updatedApplication.ToResponse(),
     })
 }
 
@@ -70,6 +70,6 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "order updated successfully",
-		"order": newChargingOrder.ToResponse(),
+		"charging_order": newChargingOrder.ToResponse(),
 	})
 }

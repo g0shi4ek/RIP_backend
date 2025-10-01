@@ -70,6 +70,14 @@ func (s *ChargingService) GetChargingApplication(ctx context.Context, id uint) (
 	return chargingApplication, chargingApplicationOrders, nil
 }
 
+func (s *ChargingService) GetDraftChargingApplicationIfExist(ctx context.Context, creatorId uint) (*domain.ChargingApplication, error) {
+	chargingDraft, err := s.chargingRepository.GetDraftChargingApplicationByCreator(ctx, creatorId)
+	if err != nil {
+		return nil, err
+	}
+	return chargingDraft, nil
+}
+
 func (s *ChargingService) GetDraftChargingApplication(ctx context.Context, creatorId uint) (*domain.ChargingApplication, error) {
 	chargingDraft, err := s.chargingRepository.GetDraftChargingApplicationByCreator(ctx, creatorId)
 	if err == nil {
@@ -139,7 +147,7 @@ func (s *ChargingService) FormChargingApplication(ctx context.Context, creatorId
 	time := time.Now()
 	chargingUpdates := map[string]interface{}{
 		"formed_at": time,
-		"status":     "formed",
+		"status":    "formed",
 	}
 	err = s.chargingRepository.UpdateChargingApplication(ctx, chargingApplication.Id, chargingUpdates)
 	if err != nil {
