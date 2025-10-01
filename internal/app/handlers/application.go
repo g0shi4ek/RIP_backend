@@ -41,11 +41,11 @@ func (h *ChargingHandler) GetChargingApplications(c *gin.Context) {
 	}
 
 	var chargingAppResponse []domain.ChargingApplicationResponse
-    for _, app := range *chargingApplications{
-        chargingAppResponse = append(chargingAppResponse, app.ToResponse())
-    }
+	for _, app := range *chargingApplications {
+		chargingAppResponse = append(chargingAppResponse, app.ToResponse())
+	}
 
-    c.JSON(http.StatusOK, chargingAppResponse)
+	c.JSON(http.StatusOK, chargingAppResponse)
 }
 
 // GetChargingApplicationById godoc
@@ -78,16 +78,16 @@ func (h *ChargingHandler) GetChargingApplicationById(c *gin.Context) {
 		return
 	}
 	var orderResponses []domain.ChargingOrderResponse
-    for _, order := range *chargingOrders {
-        orderResponses = append(orderResponses, order.ToResponse())
-    }
+	for _, order := range *chargingOrders {
+		orderResponses = append(orderResponses, order.ToResponse())
+	}
 
-    chargingResponse := gin.H{
-        "application": resultApplication.ToResponse(),
-        "orders":      orderResponses,
-    }
+	chargingResponse := gin.H{
+		"charging_application": resultApplication.ToResponse(),
+		"charging_orders":      orderResponses,
+	}
 
-    c.JSON(http.StatusOK, chargingResponse)
+	c.JSON(http.StatusOK, chargingResponse)
 }
 
 // GetDraftChargingApplication godoc
@@ -112,13 +112,13 @@ func (h *ChargingHandler) GetDraftChargingApplication(c *gin.Context) {
 		return
 	}
 
-	draftApplication, err := h.chargingService.GetDraftChargingApplication(ctx, creatorId)
+	draftApplication, err := h.chargingService.GetDraftChargingApplicationIfExist(ctx, creatorId)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, draftApplication.ToResponse())
+	c.JSON(http.StatusOK, draftApplication.ToDraftResponse())
 }
 
 // UpdateChargingApplicationPhone godoc
@@ -158,8 +158,8 @@ func (h *ChargingHandler) UpdateChargingApplicationPhone(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "phone updated successfully",
-		"application": chargingApplication.ToResponse(),
+		"message":     "phone updated successfully",
+		"charging_application": chargingApplication.ToResponse(),
 	})
 }
 
@@ -193,8 +193,8 @@ func (h *ChargingHandler) UpdateChargingApplicationByCreator(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "application formed successfully",
-		"application": chargingApplication.ToResponse(),
+		"message":     "application formed successfully",
+		"charging_application": chargingApplication.ToResponse(),
 	})
 }
 
@@ -248,8 +248,8 @@ func (h *ChargingHandler) UpdateChargingApplicationByModerator(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": fmt.Sprintf("application %s successfully", action),
-		"application": chargingApplication.ToResponse(),
+		"message":     fmt.Sprintf("application %s successfully", action),
+		"charging_application": chargingApplication.ToResponse(),
 	})
 }
 
