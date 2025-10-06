@@ -6,9 +6,8 @@ import (
 
 // M-M
 type ChargingOrder struct {
-	Id              uint                `gorm:"primaryKey" json:"id"`
-	ApplicationId   uint                `gorm:"not null;uniqueIndex:idx_order_unique" json:"application_id"`
-	TariffId        uint                `gorm:"not null;uniqueIndex:idx_order_unique" json:"tariff_id"`
+	ApplicationId   uint                `gorm:"primaryKey;uniqueIndex:idx_order_unique" json:"application_id"`
+	TariffId        uint                `gorm:"primaryKey;uniqueIndex:idx_order_unique" json:"tariff_id"`
 	Application     ChargingApplication `gorm:"foreignKey:ApplicationId" json:"-"`
 	Tariff          ChargingTariff      `gorm:"foreignKey:TariffId" json:"tariff"`
 	BatteryCapacity float32             `gorm:"null" json:"battery_capacity,omitempty"`

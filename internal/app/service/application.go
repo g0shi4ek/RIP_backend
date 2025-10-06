@@ -10,7 +10,7 @@ import (
 	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
 )
 
-func (s *ChargingService) GetChargingApplications(ctx context.Context, status, startDate, endDate string) (*[]domain.ChargingApplication, error) {
+func (s *ChargingService) GetChargingApplications(ctx context.Context, creatorId uint, userRole, status, startDate, endDate string) (*[]domain.ChargingApplication, error) {
 	var startTime, endTime time.Time
 	var err error
 
@@ -46,6 +46,9 @@ func (s *ChargingService) GetChargingApplications(ctx context.Context, status, s
 		}
 
 		if !endTime.IsZero() && chargingApplication.CreatedAt.After(endTime) {
+			continue
+		}
+		if userRole == "client" && chargingApplication.CreatorId != creatorId{
 			continue
 		}
 
@@ -180,12 +183,14 @@ func (s *ChargingService) CompleteChargingApplication(ctx context.Context, id ui
 	for _, chargingOrder := range *chargingOrders {
 		tariff, err := s.chargingRepository.GetTariffById(ctx, chargingOrder.TariffId)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get tariff for order %d: %v", chargingOrder.Id, err)
+			return nil, fmt.Errorf("failed to get tariff for order (application=%d, tariff=%d): %v", 
+				chargingOrder.ApplicationId, chargingOrder.TariffId, err)
 		}
 
 		orderCost, chargingTime, err := helpers.CalculateChargingPriceForOrder(&chargingOrder, tariff)
 		if err != nil {
-			return nil, fmt.Errorf("failed to calculate price for order %d: %v", chargingOrder.Id, err)
+			return nil, fmt.Errorf("failed to calculate price for order (application=%d, tariff=%d): %v", 
+				chargingOrder.ApplicationId, chargingOrder.TariffId, err)
 		}
 
 		orderUpdates := map[string]interface{}{
@@ -193,9 +198,10 @@ func (s *ChargingService) CompleteChargingApplication(ctx context.Context, id ui
 			"calculated_price": orderCost,
 		}
 
-		err = s.chargingRepository.UpdateChargingOrder(context.Background(), chargingOrder.Id, orderUpdates)
+		err = s.chargingRepository.UpdateChargingOrder(ctx, chargingOrder.ApplicationId, chargingOrder.TariffId, orderUpdates)
 		if err != nil {
-			return nil, fmt.Errorf("failed to update order %d: %v", chargingOrder.Id, err)
+			return nil, fmt.Errorf("failed to update order (application=%d, tariff=%d)", 
+				chargingOrder.ApplicationId, chargingOrder.TariffId)
 		}
 
 		totalPrice += orderCost

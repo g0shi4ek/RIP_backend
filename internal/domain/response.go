@@ -3,7 +3,6 @@ package domain
 import "time"
 
 type ChargingOrderResponse struct {
-	Id              uint           `json:"id"`
 	TariffId        uint           `json:"tariff_id"`
 	Tariff          TariffResponse `json:"tariff"`
 	BatteryCapacity float32        `json:"battery_capacity"`
@@ -43,7 +42,6 @@ type UserResponse struct {
 
 func (o *ChargingOrder) ToResponse() ChargingOrderResponse {
 	return ChargingOrderResponse{
-		Id:              o.Id,
 		TariffId:        o.TariffId,
 		Tariff:          o.Tariff.ToResponse(),
 		BatteryCapacity: o.BatteryCapacity,

@@ -29,33 +29,32 @@ func (r *ChargingRepository) CreateChargingOrder(ctx context.Context, chargingOr
 	})
 }
 
-func (r *ChargingRepository) UpdateChargingOrder(ctx context.Context, id uint, chargingUpdates map[string]interface{}) error {
+func (r *ChargingRepository) UpdateChargingOrder(ctx context.Context, applicationId, tariffId uint, chargingUpdates map[string]interface{}) error {
 	err := r.db.WithContext(ctx).Model(&domain.ChargingOrder{}).
-		Where("id = ?", id).
+		Where("application_id = ? AND tariff_id = ?", applicationId, tariffId).
 		Updates(chargingUpdates).Error
 
 	if err != nil {
 		return fmt.Errorf("failed to update charging order: %v", err)
 	}
 
-	log.Printf("repo: updated order, %d", id)
+	log.Printf("repo: updated order, application=%d, tariff=%d", applicationId, tariffId)
 	return nil
 }
 
-func (r *ChargingRepository) GetChargingOrderById(ctx context.Context, id uint) (*domain.ChargingOrder, error) {
+func (r *ChargingRepository) GetChargingOrder(ctx context.Context, applicationId, tariffId uint) (*domain.ChargingOrder, error) {
 	var chargingOrder domain.ChargingOrder
 
 	err := r.db.WithContext(ctx).
 		Preload("Tariff").
 		Preload("Application").
-		Model(&chargingOrder).
-		Where("id = ?", id).
+		Where("application_id = ? AND tariff_id = ?", applicationId, tariffId).
 		First(&chargingOrder).Error
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get charging order: %v", err)
 	}
-	log.Printf("repo: order retrieved: %d", id)
+	log.Printf("repo: order retrieved: application=%d, tariff=%d", applicationId, tariffId)
 	return &chargingOrder, nil
 }
 
@@ -76,11 +75,9 @@ func (r *ChargingRepository) GetChargingOrdersByApplicationId(ctx context.Contex
 	return &chargingOrders, nil
 }
 
-func (r *ChargingRepository) DeleteChargingOrder(ctx context.Context, orderId uint, applicationId uint) error {
-	//удаление заказа и обновление счетчика в заявке
+func (r *ChargingRepository) DeleteChargingOrder(ctx context.Context, applicationId, tariffId uint) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		err := tx.Model(&domain.ChargingOrder{}).
-			Where("id = ?", orderId).
+		err := tx.Where("application_id = ? AND tariff_id = ?", applicationId, tariffId).
 			Delete(&domain.ChargingOrder{}).Error
 		if err != nil {
 			return fmt.Errorf("failed to delete charging order: %v", err)
@@ -93,7 +90,7 @@ func (r *ChargingRepository) DeleteChargingOrder(ctx context.Context, orderId ui
 		if err != nil {
 			return fmt.Errorf("failed to update application order count: %v", err)
 		}
-		log.Printf("repo: deleted order from %d application", applicationId)
+		log.Printf("repo: deleted order from %d application, tariff=%d", applicationId, tariffId)
 		return nil
 	})
 }

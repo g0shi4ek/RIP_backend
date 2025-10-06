@@ -33,10 +33,10 @@ type IChargingRepository interface {
 	DeleteChargingApplicationById(ctx context.Context, id uint) error
 
 	CreateChargingOrder(ctx context.Context, chargingOrder *ChargingOrder) error
-	UpdateChargingOrder(ctx context.Context, id uint, chargingUpdates map[string]interface{}) error
-	GetChargingOrderById(ctx context.Context, id uint) (*ChargingOrder, error)
+	UpdateChargingOrder(ctx context.Context, applicationId, tariffId uint, chargingUpdates map[string]interface{}) error
+	GetChargingOrder(ctx context.Context, applicationId, tariffId uint) (*ChargingOrder, error)
 	GetChargingOrdersByApplicationId(ctx context.Context, applicationId uint) (*[]ChargingOrder, error)
-	DeleteChargingOrder(ctx context.Context, orderId uint, applicationId uint) error
+	DeleteChargingOrder(ctx context.Context, applicationId, tariffId uint) error
 
 	CreateChargingUser(ctx context.Context, user *User) error
 	UpdateChargingUser(ctx context.Context, id uint, chargingUpdates map[string]interface{}) error
@@ -56,7 +56,7 @@ type IChargingService interface {
 	UploadTariffImage(ctx context.Context, id uint, tariffImage []byte) (*ChargingTariff, error)
 	AddChargingOrderToApplication(ctx context.Context, tariffId uint, applicationId uint) (*ChargingOrder, error)
 
-	GetChargingApplications(ctx context.Context, status, startDate, endDate string) (*[]ChargingApplication, error)
+	GetChargingApplications(ctx context.Context, creatorId uint, userRole string, status, startDate, endDate string) (*[]ChargingApplication, error)
 	GetChargingApplication(ctx context.Context, id uint) (*ChargingApplication, *[]ChargingOrder, error)
 	GetDraftChargingApplication(ctx context.Context, creatorId uint) (*ChargingApplication, error)
 	GetDraftChargingApplicationIfExist(ctx context.Context, creatorId uint) (*ChargingApplication, error)
@@ -66,7 +66,7 @@ type IChargingService interface {
 	RejectChargingApplication(ctx context.Context, id uint, moderatorId uint) (*ChargingApplication, error)
 	DeleteChargingApplication(ctx context.Context, creatorId uint) error
 
-	RemoveChargingOrderFromApplication(ctx context.Context, orderId uint) (*ChargingApplication, error)
+	RemoveChargingOrderFromApplication(ctx context.Context, applicationId, tariffId uint) (*ChargingApplication, error)
 	UpdateChargingOrder(ctx context.Context, chargingOrder *ChargingOrder) (*ChargingOrder, error)
 
 	RegisterChargingUser(ctx context.Context, user *User) (*User, error)

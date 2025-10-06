@@ -1,21 +1,9 @@
 basePath: /api
 definitions:
-  domain.ApplicationRequest:
-    description: Phone number for charging application
-    properties:
-      phone:
-        type: string
-    required:
-    - phone
-    type: object
-  domain.ChargingApplication:
+  domain.ChargingApplicationResponse:
     properties:
       amount_of_orders:
         type: integer
-      completed_at:
-        type: string
-      created_at:
-        type: string
       creator_id:
         type: integer
       creator_phone:
@@ -24,62 +12,17 @@ definitions:
         type: integer
       moderator_id:
         type: integer
-      orders:
-        items:
-          $ref: '#/definitions/domain.ChargingOrder'
-        type: array
-      status:
-        description: draft, deleted, formed, completed, rejected
-        type: string
       total_price:
         type: number
-      updated_at:
-        type: string
     type: object
-  domain.ChargingOrder:
+  domain.ChargingDraftResponse:
     properties:
-      application_id:
+      amount_of_orders:
         type: integer
-      battery_capacity:
-        type: number
-      calculated_price:
-        description: расчетная стоимость для этой услуги
-        type: number
-      current_percent:
-        type: integer
-      estimated_time:
-        description: расчетное время зарядки в часах
-        type: number
       id:
         type: integer
-      start_time:
-        description: if night => price >
-        type: string
-      tariff:
-        $ref: '#/definitions/domain.ChargingTariff'
-      tariff_id:
-        type: integer
     type: object
-  domain.ChargingTariff:
-    properties:
-      description:
-        type: string
-      id:
-        type: integer
-      image_url:
-        type: string
-      is_deleted:
-        type: boolean
-      nameof_tariff:
-        type: string
-      power:
-        description: мощность зарядки в кВт
-        type: number
-      price_per_hour:
-        type: number
-    type: object
-  domain.OrderRequest:
-    description: Charging order data
+  domain.ChargingOrderRequest:
     properties:
       battery_capacity:
         type: number
@@ -92,8 +35,14 @@ definitions:
     - current_percent
     - start_time
     type: object
+  domain.PhoneRequest:
+    properties:
+      phone:
+        type: string
+    required:
+    - phone
+    type: object
   domain.TariffRequest:
-    description: Charging tariff data
     properties:
       description:
         type: string
@@ -109,19 +58,22 @@ definitions:
     - power
     - price_per_hour
     type: object
-  domain.User:
+  domain.TariffResponse:
     properties:
+      description:
+        type: string
       id:
         type: integer
-      is_moderator:
-        type: boolean
-      login:
+      image_url:
         type: string
-      password:
+      nameof_tariff:
         type: string
+      power:
+        type: number
+      price_per_hour:
+        type: number
     type: object
-  domain.UserRequest:
-    description: User login and password for authentication
+  domain.UserLoginRequest:
     properties:
       login:
         type: string
@@ -130,6 +82,22 @@ definitions:
     required:
     - login
     - password
+    type: object
+  domain.UserResponse:
+    properties:
+      id:
+        type: integer
+      login:
+        type: string
+    type: object
+  domain.UserUpdateRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
     type: object
 host: localhost:8080
 info:
@@ -170,7 +138,7 @@ paths:
       - BearerAuth: []
       summary: Delete charging application
       tags:
-      - applications
+      - Charging applications
     get:
       consumes:
       - application/json
@@ -180,11 +148,11 @@ paths:
         in: query
         name: status
         type: string
-      - description: Start date for filtering (YYYY-MM-DD)
+      - description: Start date for filtering
         in: query
         name: start_date
         type: string
-      - description: End date for filtering (YYYY-MM-DD)
+      - description: End date for filtering
         in: query
         name: end_date
         type: string
@@ -195,7 +163,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.ChargingApplication'
+              $ref: '#/definitions/domain.ChargingApplicationResponse'
             type: array
         "400":
           description: Bad request
@@ -217,7 +185,7 @@ paths:
       - BearerAuth: []
       summary: Get charging applications
       tags:
-      - applications
+      - Charging applications
   /chargingApplications/{id}:
     get:
       consumes:
@@ -256,7 +224,7 @@ paths:
       - BearerAuth: []
       summary: Get charging application by ID
       tags:
-      - applications
+      - Charging applications
   /chargingApplications/{id}/{action}:
     put:
       consumes:
@@ -304,7 +272,7 @@ paths:
       - BearerAuth: []
       summary: Update application status by moderator
       tags:
-      - applications
+      - Charging applications
   /chargingApplications/draft:
     get:
       consumes:
@@ -316,7 +284,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.ChargingApplication'
+            $ref: '#/definitions/domain.ChargingDraftResponse'
         "401":
           description: Unauthorized
           schema:
@@ -333,7 +301,7 @@ paths:
       - BearerAuth: []
       summary: Get draft charging application
       tags:
-      - applications
+      - Charging applications
   /chargingApplications/form:
     put:
       consumes:
@@ -366,7 +334,7 @@ paths:
       - BearerAuth: []
       summary: Form charging application
       tags:
-      - applications
+      - Charging applications
   /chargingApplications/phone:
     put:
       consumes:
@@ -378,7 +346,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.ApplicationRequest'
+          $ref: '#/definitions/domain.PhoneRequest'
       produces:
       - application/json
       responses:
@@ -406,59 +374,16 @@ paths:
       - BearerAuth: []
       summary: Update application phone number
       tags:
-      - applications
+      - Charging applications
   /chargingApplications/tariffs/{id}:
-    post:
-      consumes:
-      - application/json
-      description: Add a charging tariff to current user's draft application
-      parameters:
-      - description: Tariff ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/domain.ChargingOrder'
-        "400":
-          description: Bad request
-          schema:
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            type: object
-        "404":
-          description: Tariff or application not found
-          schema:
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Add tariff to application
-      tags:
-      - orders
-  /chargingOrders/{id}:
     delete:
       consumes:
       - application/json
       description: Remove charging order from current user's draft application
       parameters:
-      - description: Order ID
+      - description: Tariff ID
         in: path
-        name: id
+        name: tariffId
         required: true
         type: integer
       produces:
@@ -492,15 +417,57 @@ paths:
       - BearerAuth: []
       summary: Delete order from application
       tags:
-      - orders
+      - Charging orders
+    post:
+      consumes:
+      - application/json
+      description: Add a charging tariff to current user's draft application
+      parameters:
+      - description: Tariff ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Tariff added successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: object
+        "404":
+          description: Tariff or application not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add tariff to application
+      tags:
+      - Tariffs
     put:
       consumes:
       - application/json
       description: Update charging order details in draft application
       parameters:
-      - description: Order ID
+      - description: Tariff ID
         in: path
-        name: id
+        name: tariffId
         required: true
         type: integer
       - description: Order data
@@ -508,7 +475,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.OrderRequest'
+          $ref: '#/definitions/domain.ChargingOrderRequest'
       produces:
       - application/json
       responses:
@@ -540,7 +507,7 @@ paths:
       - BearerAuth: []
       summary: Update charging order
       tags:
-      - orders
+      - Charging orders
   /tariffs:
     get:
       consumes:
@@ -558,7 +525,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.ChargingTariff'
+              $ref: '#/definitions/domain.TariffResponse'
             type: array
         "500":
           description: Internal server error
@@ -566,7 +533,7 @@ paths:
             type: object
       summary: Get tariffs
       tags:
-      - tariffs
+      - Tariffs
     post:
       consumes:
       - application/json
@@ -582,9 +549,9 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created tariff ID
+          description: Created
           schema:
-            type: integer
+            $ref: '#/definitions/domain.TariffResponse'
         "400":
           description: Bad request
           schema:
@@ -605,7 +572,7 @@ paths:
       - BearerAuth: []
       summary: Create tariff
       tags:
-      - tariffs
+      - Tariffs
   /tariffs/{id}:
     delete:
       consumes:
@@ -648,7 +615,7 @@ paths:
       - BearerAuth: []
       summary: Delete tariff
       tags:
-      - tariffs
+      - Tariffs
     get:
       consumes:
       - application/json
@@ -665,7 +632,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.ChargingTariff'
+            $ref: '#/definitions/domain.TariffResponse'
         "400":
           description: Bad request
           schema:
@@ -680,7 +647,7 @@ paths:
             type: object
       summary: Get tariff by ID
       tags:
-      - tariffs
+      - Tariffs
     put:
       consumes:
       - application/json
@@ -728,7 +695,7 @@ paths:
       - BearerAuth: []
       summary: Update tariff
       tags:
-      - tariffs
+      - Tariffs
   /tariffs/{id}/image:
     post:
       consumes:
@@ -776,7 +743,7 @@ paths:
       - BearerAuth: []
       summary: Upload tariff image
       tags:
-      - tariffs
+      - Tariffs
   /users/{id}:
     get:
       consumes:
@@ -794,7 +761,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.User'
+            $ref: '#/definitions/domain.UserResponse'
         "400":
           description: Bad request
           schema:
@@ -815,7 +782,7 @@ paths:
       - BearerAuth: []
       summary: Get user by ID
       tags:
-      - users
+      - Charging users
     put:
       consumes:
       - application/json
@@ -831,7 +798,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.UserRequest'
+          $ref: '#/definitions/domain.UserUpdateRequest'
       produces:
       - application/json
       responses:
@@ -863,7 +830,7 @@ paths:
       - BearerAuth: []
       summary: Update user
       tags:
-      - users
+      - Charging users
   /users/login:
     post:
       consumes:
@@ -875,7 +842,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.UserRequest'
+          $ref: '#/definitions/domain.UserLoginRequest'
       produces:
       - application/json
       responses:
@@ -897,7 +864,7 @@ paths:
             type: object
       summary: Login user
       tags:
-      - users
+      - Charging users
   /users/logout:
     post:
       consumes:
@@ -922,7 +889,7 @@ paths:
       - BearerAuth: []
       summary: Logout user
       tags:
-      - users
+      - Charging users
   /users/register:
     post:
       consumes:
@@ -934,14 +901,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.UserRequest'
+          $ref: '#/definitions/domain.UserLoginRequest'
       produces:
       - application/json
       responses:
         "201":
-          description: Created id
+          description: Created
           schema:
-            type: integer
+            $ref: '#/definitions/domain.UserResponse'
         "400":
           description: Bad request
           schema:
@@ -956,7 +923,7 @@ paths:
             type: object
       summary: Register user
       tags:
-      - users
+      - Charging users
 securityDefinitions:
   BearerAuth:
     in: header

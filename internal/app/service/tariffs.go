@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
 	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
@@ -125,4 +126,35 @@ func (s *ChargingService) UploadTariffImage(ctx context.Context, id uint, tariff
 
 	log.Printf("image uploaded: %d", id)
 	return newTariff, nil
+}
+
+func (s *ChargingService) AddChargingOrderToApplication(ctx context.Context, tariffId uint, applicationId uint) (*domain.ChargingOrder, error) {
+	_, err := s.chargingRepository.GetTariffById(ctx, tariffId)
+	if err != nil {
+		return nil, fmt.Errorf("tariff not found: %v", err)
+	}
+
+	existingOrder, err := s.chargingRepository.GetChargingOrder(ctx, applicationId, tariffId)
+	if err == nil && existingOrder != nil {
+		return nil, fmt.Errorf("tariff already exists in application")
+	}
+
+	newChargingOrder := &domain.ChargingOrder{
+		ApplicationId:   applicationId,
+		TariffId:        tariffId,
+		StartTime:       time.Time{},
+	}
+
+	err = s.chargingRepository.CreateChargingOrder(ctx, newChargingOrder)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create charging order: %v", err)
+	}
+
+	createdOrder, err := s.chargingRepository.GetChargingOrder(ctx, applicationId, tariffId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get created charging order: %v", err)
+	}
+
+	log.Printf("charging order added: application=%d, tariff=%d", applicationId, tariffId)
+	return createdOrder, nil
 }

@@ -15,11 +15,11 @@ import (
 // RegisterUser godoc
 // @Summary Register user
 // @Description Register new user account
-// @Tags users
+// @Tags Charging users
 // @Accept json
 // @Produce json
-// @Param request body domain.UserRequest true "User credentials"
-// @Success 201 {integer} integer "Created id"
+// @Param request body domain.UserLoginRequest true "User credentials"
+// @Success 201 {object} domain.UserResponse
 // @Failure 400 {object} object "Bad request"
 // @Failure 409 {object} object "Conflict - already exists"
 // @Failure 500 {object} object "Internal server error"
@@ -51,12 +51,12 @@ func (h *ChargingHandler) RegisterUser(c *gin.Context) {
 // GetUserById godoc
 // @Summary Get user by ID
 // @Description Get user profile by ID
-// @Tags users
+// @Tags Charging users
 // @Accept json
 // @Produce json
 // @Param id path int true "User ID"
 // @Security BearerAuth
-// @Success 200 {object} domain.User
+// @Success 200 {object} domain.UserResponse
 // @Failure 400 {object} object "Bad request"
 // @Failure 401 {object} object "Unauthorized"
 // @Failure 404 {object} object "User not found"
@@ -84,11 +84,11 @@ func (h *ChargingHandler) GetUserById(c *gin.Context) {
 // UpdateUser godoc
 // @Summary Update user
 // @Description Update user profile
-// @Tags users
+// @Tags Charging users
 // @Accept json
 // @Produce json
 // @Param id path int true "User id"
-// @Param request body domain.UserRequest true "User data"
+// @Param request body domain.UserUpdateRequest true "User data"
 // @Security BearerAuth
 // @Success 200 {object} object "User updated successfully"
 // @Failure 400 {object} object "Bad request"
@@ -134,10 +134,10 @@ func (h *ChargingHandler) UpdateUser(c *gin.Context) {
 // LoginUser godoc
 // @Summary Login user
 // @Description Authenticate user and get JWT token
-// @Tags users
+// @Tags Charging users
 // @Accept json
 // @Produce json
-// @Param request body domain.UserRequest true "User credentials"
+// @Param request body domain.UserLoginRequest true "User credentials"
 // @Success 200 {object} object "Login response with token"
 // @Failure 400 {object} object "Bad request"
 // @Failure 401 {object} object "Unauthorized"
@@ -168,7 +168,7 @@ func (h *ChargingHandler) LoginUser(c *gin.Context) {
 // LogOutUser godoc
 // @Summary Logout user
 // @Description Invalidate user's JWT token
-// @Tags users
+// @Tags Charging users
 // @Accept json
 // @Produce json
 // @Security BearerAuth

@@ -30,7 +30,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "applications"
+                    "Charging applications"
                 ],
                 "summary": "Get charging applications",
                 "parameters": [
@@ -42,13 +42,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Start date for filtering (YYYY-MM-DD)",
+                        "description": "Start date for filtering",
                         "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "End date for filtering (YYYY-MM-DD)",
+                        "description": "End date for filtering",
                         "name": "end_date",
                         "in": "query"
                     }
@@ -59,7 +59,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.ChargingApplication"
+                                "$ref": "#/definitions/domain.ChargingApplicationResponse"
                             }
                         }
                     },
@@ -103,7 +103,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "applications"
+                    "Charging applications"
                 ],
                 "summary": "Delete charging application",
                 "responses": {
@@ -155,14 +155,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "applications"
+                    "Charging applications"
                 ],
                 "summary": "Get draft charging application",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.ChargingApplication"
+                            "$ref": "#/definitions/domain.ChargingDraftResponse"
                         }
                     },
                     "401": {
@@ -201,7 +201,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "applications"
+                    "Charging applications"
                 ],
                 "summary": "Form charging application",
                 "responses": {
@@ -253,7 +253,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "applications"
+                    "Charging applications"
                 ],
                 "summary": "Update application phone number",
                 "parameters": [
@@ -263,7 +263,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.ApplicationRequest"
+                            "$ref": "#/definitions/domain.PhoneRequest"
                         }
                     }
                 ],
@@ -302,6 +302,80 @@ const docTemplate = `{
             }
         },
         "/chargingApplications/tariffs/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update charging order details in draft application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Charging orders"
+                ],
+                "summary": "Update charging order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tariff ID",
+                        "name": "tariffId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Order data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.ChargingOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order updated successfully",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order not found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -316,7 +390,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "orders"
+                    "Tariffs"
                 ],
                 "summary": "Add tariff to application",
                 "parameters": [
@@ -330,9 +404,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Tariff added successfully",
                         "schema": {
-                            "$ref": "#/definitions/domain.ChargingOrder"
+                            "type": "object"
                         }
                     },
                     "400": {
@@ -366,6 +440,71 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove charging order from current user's draft application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Charging orders"
+                ],
+                "summary": "Delete order from application",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tariff ID",
+                        "name": "tariffId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order deleted successfully",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order not found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/chargingApplications/{id}": {
@@ -383,7 +522,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "applications"
+                    "Charging applications"
                 ],
                 "summary": "Get charging application by ID",
                 "parameters": [
@@ -444,7 +583,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "applications"
+                    "Charging applications"
                 ],
                 "summary": "Update application status by moderator",
                 "parameters": [
@@ -503,147 +642,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/chargingOrders/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update charging order details in draft application",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "orders"
-                ],
-                "summary": "Update charging order",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Order ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Order data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.OrderRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Order updated successfully",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "404": {
-                        "description": "Order not found",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Remove charging order from current user's draft application",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "orders"
-                ],
-                "summary": "Delete order from application",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Order ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Order deleted successfully",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "404": {
-                        "description": "Order not found",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                }
-            }
-        },
         "/tariffs": {
             "get": {
                 "description": "Get list of charging tariffs with optional filtering",
@@ -654,7 +652,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tariffs"
+                    "Tariffs"
                 ],
                 "summary": "Get tariffs",
                 "parameters": [
@@ -671,7 +669,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.ChargingTariff"
+                                "$ref": "#/definitions/domain.TariffResponse"
                             }
                         }
                     },
@@ -697,7 +695,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tariffs"
+                    "Tariffs"
                 ],
                 "summary": "Create tariff",
                 "parameters": [
@@ -713,9 +711,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created tariff ID",
+                        "description": "Created",
                         "schema": {
-                            "type": "integer"
+                            "$ref": "#/definitions/domain.TariffResponse"
                         }
                     },
                     "400": {
@@ -755,7 +753,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tariffs"
+                    "Tariffs"
                 ],
                 "summary": "Get tariff by ID",
                 "parameters": [
@@ -771,7 +769,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.ChargingTariff"
+                            "$ref": "#/definitions/domain.TariffResponse"
                         }
                     },
                     "400": {
@@ -808,7 +806,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tariffs"
+                    "Tariffs"
                 ],
                 "summary": "Update tariff",
                 "parameters": [
@@ -882,7 +880,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tariffs"
+                    "Tariffs"
                 ],
                 "summary": "Delete tariff",
                 "parameters": [
@@ -949,7 +947,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tariffs"
+                    "Tariffs"
                 ],
                 "summary": "Upload tariff image",
                 "parameters": [
@@ -1018,7 +1016,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Charging users"
                 ],
                 "summary": "Login user",
                 "parameters": [
@@ -1028,7 +1026,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UserRequest"
+                            "$ref": "#/definitions/domain.UserLoginRequest"
                         }
                     }
                 ],
@@ -1075,7 +1073,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Charging users"
                 ],
                 "summary": "Logout user",
                 "responses": {
@@ -1110,7 +1108,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Charging users"
                 ],
                 "summary": "Register user",
                 "parameters": [
@@ -1120,15 +1118,15 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UserRequest"
+                            "$ref": "#/definitions/domain.UserLoginRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created id",
+                        "description": "Created",
                         "schema": {
-                            "type": "integer"
+                            "$ref": "#/definitions/domain.UserResponse"
                         }
                     },
                     "400": {
@@ -1167,7 +1165,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Charging users"
                 ],
                 "summary": "Get user by ID",
                 "parameters": [
@@ -1183,7 +1181,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.User"
+                            "$ref": "#/definitions/domain.UserResponse"
                         }
                     },
                     "400": {
@@ -1226,7 +1224,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Charging users"
                 ],
                 "summary": "Update user",
                 "parameters": [
@@ -1243,7 +1241,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UserRequest"
+                            "$ref": "#/definitions/domain.UserUpdateRequest"
                         }
                     }
                 ],
@@ -1289,29 +1287,11 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.ApplicationRequest": {
-            "description": "Phone number for charging application",
-            "type": "object",
-            "required": [
-                "phone"
-            ],
-            "properties": {
-                "phone": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.ChargingApplication": {
+        "domain.ChargingApplicationResponse": {
             "type": "object",
             "properties": {
                 "amount_of_orders": {
                     "type": "integer"
-                },
-                "completed_at": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
                 },
                 "creator_id": {
                     "type": "integer"
@@ -1325,88 +1305,23 @@ const docTemplate = `{
                 "moderator_id": {
                     "type": "integer"
                 },
-                "orders": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.ChargingOrder"
-                    }
-                },
-                "status": {
-                    "description": "draft, deleted, formed, completed, rejected",
-                    "type": "string"
-                },
                 "total_price": {
                     "type": "number"
-                },
-                "updated_at": {
-                    "type": "string"
                 }
             }
         },
-        "domain.ChargingOrder": {
+        "domain.ChargingDraftResponse": {
             "type": "object",
             "properties": {
-                "application_id": {
+                "amount_of_orders": {
                     "type": "integer"
-                },
-                "battery_capacity": {
-                    "type": "number"
-                },
-                "calculated_price": {
-                    "description": "расчетная стоимость для этой услуги",
-                    "type": "number"
-                },
-                "current_percent": {
-                    "type": "integer"
-                },
-                "estimated_time": {
-                    "description": "расчетное время зарядки в часах",
-                    "type": "number"
                 },
                 "id": {
                     "type": "integer"
-                },
-                "start_time": {
-                    "description": "if night =\u003e price \u003e",
-                    "type": "string"
-                },
-                "tariff": {
-                    "$ref": "#/definitions/domain.ChargingTariff"
-                },
-                "tariff_id": {
-                    "type": "integer"
                 }
             }
         },
-        "domain.ChargingTariff": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "image_url": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "nameof_tariff": {
-                    "type": "string"
-                },
-                "power": {
-                    "description": "мощность зарядки в кВт",
-                    "type": "number"
-                },
-                "price_per_hour": {
-                    "type": "number"
-                }
-            }
-        },
-        "domain.OrderRequest": {
-            "description": "Charging order data",
+        "domain.ChargingOrderRequest": {
             "type": "object",
             "required": [
                 "battery_capacity",
@@ -1425,8 +1340,18 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.PhoneRequest": {
+            "type": "object",
+            "required": [
+                "phone"
+            ],
+            "properties": {
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.TariffRequest": {
-            "description": "Charging tariff data",
             "type": "object",
             "required": [
                 "description",
@@ -1449,15 +1374,36 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.User": {
+        "domain.TariffResponse": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
-                "is_moderator": {
-                    "type": "boolean"
+                "image_url": {
+                    "type": "string"
                 },
+                "nameof_tariff": {
+                    "type": "string"
+                },
+                "power": {
+                    "type": "number"
+                },
+                "price_per_hour": {
+                    "type": "number"
+                }
+            }
+        },
+        "domain.UserLoginRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
                 "login": {
                     "type": "string"
                 },
@@ -1466,12 +1412,21 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UserRequest": {
-            "description": "User login and password for authentication",
+        "domain.UserResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "login": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UserUpdateRequest": {
             "type": "object",
             "required": [
-                "login",
-                "password"
+                "login"
             ],
             "properties": {
                 "login": {

@@ -13,10 +13,10 @@ import (
 // DeleteChargingOrderFromApplication godoc
 // @Summary Delete order from application
 // @Description Remove charging order from current user's draft application
-// @Tags orders
+// @Tags Charging orders
 // @Accept json
 // @Produce json
-// @Param id path int true "Order ID"
+// @Param tariffId path int true "Tariff ID"
 // @Security BearerAuth
 // @Success 200 {object} object "Order deleted successfully"
 // @Failure 400 {object} object "Bad request"
@@ -24,37 +24,49 @@ import (
 // @Failure 403 {object} object "Forbidden"
 // @Failure 404 {object} object "Order not found"
 // @Failure 500 {object} object "Internal server error"
-// @Router /chargingOrders/{id} [delete]
+// @Router /chargingApplications/tariffs/{id} [delete]
 func (h *ChargingHandler) DeleteChargingOrderFromApplication(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	chargingOrderId, err := helpers.ValidateID(c.Param("id"))
+	creatorId, err := h.getCurrentUserID(c)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
-	updatedApplication, err := h.chargingService.RemoveChargingOrderFromApplication(ctx, chargingOrderId)
+	draftApplication, err := h.chargingService.GetDraftChargingApplicationIfExist(ctx, creatorId)
+	if err != nil {
+		h.ErrorHandler(c, err)
+		return
+	}
+
+	tariffId, err := helpers.ValidateID(c.Param("id"))
+	if err != nil {
+		h.ErrorHandler(c, err)
+		return
+	}
+
+	chargingApplication, err := h.chargingService.RemoveChargingOrderFromApplication(ctx, draftApplication.Id, tariffId)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-        "message":     "order deleted successfully",
-        "charging_application": updatedApplication.ToResponse(),
-    })
+		"message":              "order deleted successfully",
+		"charging_application": chargingApplication.ToResponse(),
+	})
 }
 
 // UpdateChargingOrder godoc
 // @Summary Update charging order
 // @Description Update charging order details in draft application
-// @Tags orders
+// @Tags Charging orders
 // @Accept json
 // @Produce json
-// @Param id path int true "Order ID"
-// @Param request body domain.OrderRequest true "Order data"
+// @Param tariffId path int true "Tariff ID"
+// @Param request body domain.ChargingOrderRequest true "Order data"
 // @Security BearerAuth
 // @Success 200 {object} object "Order updated successfully"
 // @Failure 400 {object} object "Bad request"
@@ -62,12 +74,24 @@ func (h *ChargingHandler) DeleteChargingOrderFromApplication(c *gin.Context) {
 // @Failure 403 {object} object "Forbidden"
 // @Failure 404 {object} object "Order not found"
 // @Failure 500 {object} object "Internal server error"
-// @Router /chargingOrders/{id} [put]
+// @Router /chargingApplications/tariffs/{id} [put]
 func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	chargingOrderId, err := helpers.ValidateID(c.Param("id"))
+	creatorId, err := h.getCurrentUserID(c)
+	if err != nil {
+		h.ErrorHandler(c, err)
+		return
+	}
+
+	draftApplication, err := h.chargingService.GetDraftChargingApplicationIfExist(ctx, creatorId)
+	if err != nil {
+		h.ErrorHandler(c, err)
+		return
+	}
+
+	tariffId, err := helpers.ValidateID(c.Param("id"))
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
@@ -79,7 +103,6 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 		return
 	}
 	location, _ := time.LoadLocation("Local")
-
 	startTime, err := time.ParseInLocation("15:04", chargingOrderRequest.StartTime, location)
 	if err != nil {
 		h.ErrorHandler(c, ErrInvalidRequestBody)
@@ -87,7 +110,8 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 	}
 
 	chargingOrder := domain.ChargingOrder{
-		Id:              chargingOrderId,
+		ApplicationId:   draftApplication.Id,
+		TariffId:        tariffId,
 		BatteryCapacity: chargingOrderRequest.BatteryCapacity,
 		CurrentPercent:  chargingOrderRequest.CurrentPercent,
 		StartTime:       startTime,
@@ -100,7 +124,7 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "order updated successfully",
+		"message":        "order updated successfully",
 		"charging_order": newChargingOrder.ToResponse(),
 	})
 }

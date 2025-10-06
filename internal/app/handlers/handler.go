@@ -69,8 +69,8 @@ func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
 				client.DELETE("/chargingApplications", h.DeleteChargingApplicationById)
 
 				client.POST("/chargingApplications/tariffs/:id", h.AddTariffToApplication)
-				client.DELETE("/chargingOrders/:id", h.DeleteChargingOrderFromApplication)
-				client.PUT("/chargingOrders/:id", h.UpdateChargingOrder)
+				client.DELETE("/chargingApplications/tariffs/:id", h.DeleteChargingOrderFromApplication)
+				client.PUT("/chargingApplications/tariffs/:id", h.UpdateChargingOrder)
 			}
 
 			moderator := protected.Group("")
@@ -127,4 +127,8 @@ func (h *ChargingHandler) ErrorHandler(c *gin.Context, err error) {
 
 func (h *ChargingHandler) getCurrentUserID(c *gin.Context) (uint, error) {
 	return middleware.GetCurrentUserID(c)
+}
+
+func (h *ChargingHandler) getCurrentUserRole(c *gin.Context) (string, error) {
+	return middleware.GetCurrentUserRole(c)
 }

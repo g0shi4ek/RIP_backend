@@ -14,11 +14,11 @@ import (
 // GetTarrifs godoc
 // @Summary Get tariffs
 // @Description Get list of charging tariffs with optional filtering
-// @Tags tariffs
+// @Tags Tariffs
 // @Accept json
 // @Produce json
 // @Param tariffName query string false "Filter by tariff name"
-// @Success 200 {array} domain.ChargingTariff
+// @Success 200 {array} domain.TariffResponse
 // @Failure 500 {object} object "Internal server error"
 // @Router /tariffs [get]
 func (h *ChargingHandler) GetTarrifs(c *gin.Context) {
@@ -32,21 +32,21 @@ func (h *ChargingHandler) GetTarrifs(c *gin.Context) {
 	}
 
 	var tariffResponse []domain.TariffResponse
-    for _, tariff := range *tariffs {
-        tariffResponse = append(tariffResponse, tariff.ToResponse())
-    }
+	for _, tariff := range *tariffs {
+		tariffResponse = append(tariffResponse, tariff.ToResponse())
+	}
 
-    c.JSON(http.StatusOK, tariffResponse)
+	c.JSON(http.StatusOK, tariffResponse)
 }
 
 // GetChargingTarrifById godoc
 // @Summary Get tariff by ID
 // @Description Get specific charging tariff by ID
-// @Tags tariffs
+// @Tags Tariffs
 // @Accept json
 // @Produce json
 // @Param id path int true "Tariff ID"
-// @Success 200 {object} domain.ChargingTariff
+// @Success 200 {object} domain.TariffResponse
 // @Failure 400 {object} object "Bad request"
 // @Failure 404 {object} object "Tariff not found"
 // @Failure 500 {object} object "Internal server error"
@@ -73,12 +73,12 @@ func (h *ChargingHandler) GetChargingTarrifById(c *gin.Context) {
 // PostChargingTariff godoc
 // @Summary Create tariff
 // @Description Create new charging tariff (moderator only)
-// @Tags tariffs
+// @Tags Tariffs
 // @Accept json
 // @Produce json
 // @Param request body domain.TariffRequest true "Tariff data"
 // @Security BearerAuth
-// @Success 201 {integer} integer "Created tariff ID"
+// @Success 201 {object} domain.TariffResponse
 // @Failure 400 {object} object "Bad request"
 // @Failure 401 {object} object "Unauthorized"
 // @Failure 403 {object} object "Forbidden"
@@ -113,7 +113,7 @@ func (h *ChargingHandler) PostChargingTariff(c *gin.Context) {
 // UpdateChargingTarrifById godoc
 // @Summary Update tariff
 // @Description Update existing charging tariff (moderator only)
-// @Tags tariffs
+// @Tags Tariffs
 // @Accept json
 // @Produce json
 // @Param id path int true "Tariff ID"
@@ -157,7 +157,7 @@ func (h *ChargingHandler) UpdateChargingTarrifById(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "tariff updated successfully",
+		"message":         "tariff updated successfully",
 		"charging_tariff": chargingTariff.ToResponse(),
 	})
 }
@@ -165,7 +165,7 @@ func (h *ChargingHandler) UpdateChargingTarrifById(c *gin.Context) {
 // DeleteChargingTariff godoc
 // @Summary Delete tariff
 // @Description Delete charging tariff (soft delete) (moderator only)
-// @Tags tariffs
+// @Tags Tariffs
 // @Accept json
 // @Produce json
 // @Param id path int true "Tariff ID"
@@ -199,7 +199,7 @@ func (h *ChargingHandler) DeleteChargingTariff(c *gin.Context) {
 // PostChargingTariffImage godoc
 // @Summary Upload tariff image
 // @Description Upload image for charging tariff (moderator only)
-// @Tags tariffs
+// @Tags Tariffs
 // @Accept multipart/form-data
 // @Produce json
 // @Param id path int true "Tariff ID"
@@ -242,7 +242,7 @@ func (h *ChargingHandler) PostChargingTariffImage(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "image uploaded successfully", 
+		"message":         "image uploaded successfully",
 		"charging_tariff": chargingTariff.ToResponse(),
 	})
 }
@@ -250,12 +250,12 @@ func (h *ChargingHandler) PostChargingTariffImage(c *gin.Context) {
 // AddTariffToApplication godoc
 // @Summary Add tariff to application
 // @Description Add a charging tariff to current user's draft application
-// @Tags orders
+// @Tags Tariffs
 // @Accept json
 // @Produce json
 // @Param id path int true "Tariff ID"
 // @Security BearerAuth
-// @Success 201 {object} domain.ChargingOrder
+// @Success 201 {object} object "Tariff added successfully"
 // @Failure 400 {object} object "Bad request"
 // @Failure 401 {object} object "Unauthorized"
 // @Failure 403 {object} object "Forbidden"
@@ -284,7 +284,7 @@ func (h *ChargingHandler) AddTariffToApplication(c *gin.Context) {
 		return
 	}
 
-	chargingOrder, err := h.chargingService.AddChargingOrderToApplication(ctx, tariffId, draftApplication.Id)
+	_, err = h.chargingService.AddChargingOrderToApplication(ctx, tariffId, draftApplication.Id)
 	if err != nil {
 		h.ErrorHandler(c, fmt.Errorf("failed to add tariff to application: %v", err))
 		return
@@ -292,6 +292,5 @@ func (h *ChargingHandler) AddTariffToApplication(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "tariff successfully added to application",
-		"charging_order": chargingOrder.ToResponse(),
 	})
 }
