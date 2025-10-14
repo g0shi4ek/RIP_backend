@@ -85,8 +85,6 @@ definitions:
     type: object
   domain.UserResponse:
     properties:
-      id:
-        type: integer
       login:
         type: string
     type: object
@@ -744,17 +742,11 @@ paths:
       summary: Upload tariff image
       tags:
       - Tariffs
-  /users/{id}:
+  /users:
     get:
       consumes:
       - application/json
       description: Get user profile by ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
       produces:
       - application/json
       responses:
@@ -788,11 +780,6 @@ paths:
       - application/json
       description: Update user profile
       parameters:
-      - description: User id
-        in: path
-        name: id
-        required: true
-        type: integer
       - description: User data
         in: body
         name: request

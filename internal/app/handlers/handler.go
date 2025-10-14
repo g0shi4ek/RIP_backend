@@ -54,8 +54,8 @@ func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
 		protected := api.Group("")
 		protected.Use(h.authMiddleware.Auth())
 		{
-			protected.GET("/users/:id", h.GetUserById)
-			protected.PUT("/users/:id", h.UpdateUser)
+			protected.GET("/users", h.GetUserById)
+			protected.PUT("/users", h.UpdateUser)
 			protected.POST("/users/logout", h.LogOutUser)
 			protected.GET("/chargingApplications", h.GetChargingApplications)
 			protected.GET("/chargingApplications/:id", h.GetChargingApplicationById)

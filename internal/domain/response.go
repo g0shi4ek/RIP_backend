@@ -36,7 +36,6 @@ type ChargingDraftResponse struct {
 }
 
 type UserResponse struct {
-	Id          uint   `json:"id"`
 	Login       string `json:"login"`
 }
 
@@ -83,7 +82,6 @@ func (a *ChargingApplication) ToDraftResponse() ChargingDraftResponse {
 
 func (u *User) ToResponse() UserResponse {
 	return UserResponse{
-		Id:          u.Id,
 		Login:       u.Login,
 	}
 }

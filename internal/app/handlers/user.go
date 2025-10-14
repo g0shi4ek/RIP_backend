@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
-	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,19 +53,18 @@ func (h *ChargingHandler) RegisterUser(c *gin.Context) {
 // @Tags Charging users
 // @Accept json
 // @Produce json
-// @Param id path int true "User ID"
 // @Security BearerAuth
 // @Success 200 {object} domain.UserResponse
 // @Failure 400 {object} object "Bad request"
 // @Failure 401 {object} object "Unauthorized"
 // @Failure 404 {object} object "User not found"
 // @Failure 500 {object} object "Internal server error"
-// @Router /users/{id} [get]
+// @Router /users [get]
 func (h *ChargingHandler) GetUserById(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	id, err := helpers.ValidateID(c.Param("id"))
+	id, err := h.getCurrentUserID(c)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
@@ -87,7 +85,6 @@ func (h *ChargingHandler) GetUserById(c *gin.Context) {
 // @Tags Charging users
 // @Accept json
 // @Produce json
-// @Param id path int true "User id"
 // @Param request body domain.UserUpdateRequest true "User data"
 // @Security BearerAuth
 // @Success 200 {object} object "User updated successfully"
@@ -96,12 +93,12 @@ func (h *ChargingHandler) GetUserById(c *gin.Context) {
 // @Failure 404 {object} object "User not found"
 // @Failure 409 {object} object "Conflict - already exists"
 // @Failure 500 {object} object "Internal server error"
-// @Router /users/{id} [put]
+// @Router /users [put]
 func (h *ChargingHandler) UpdateUser(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	id, err := helpers.ValidateID(c.Param("id"))
+	id, err := h.getCurrentUserID(c)
 	if err != nil {
 		h.ErrorHandler(c, err)
 		return
