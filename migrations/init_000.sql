@@ -10,12 +10,12 @@ VALUES
 -- тарифы зарядки
 INSERT INTO charging_tariffs (nameof_tariff, description, image_url, price_per_hour, power, is_deleted)
 VALUES
-  ('Быстрая зарядка DC (будни)', 'Зарядка постоянным током 50-150 кВт', 'http://127.0.0.1:9000/charging-images/image.png', 12.0, 150.0,  false),
-  ('Быстрая зарядка DC (выходные)', 'Зарядка постоянным током 50-150 кВт', 'http://127.0.0.1:9000/charging-images/image.png', 15.0, 150.0, false),
-  ('AC зарядка Level 2 (будни)', 'Зарядка переменным током 22 кВт', 'http://127.0.0.1:9000/charging-images/image.png', 8.0, 22.0, false),
-  ('AC зарядка Level 2 (выходные)', 'Зарядка переменным током 22 кВт', 'http://127.0.0.1:9000/charging-images/image.png', 10.0, 22.0, false),
-  ('Медленная зарядка Level 1', 'Домашняя зарядка 3.7-7.4 кВт', 'http://127.0.0.1:9000/charging-images/image.png', 5.0, 7.4, false),
-  ('Ультрабыстрая зарядка DC', 'Зарядка 350 кВт (Tesla Supercharger)', 'http://127.0.0.1:9000/charging-images/image.png', 18.0, 350.0, false);
+  ('Быстрая зарядка DC (будни)', 'Зарядка постоянным током 50-150 кВт', 'http://127.0.0.1:9000/charging-images/images/charging_3.jpg', 12.0, 150.0,  false),
+  ('Быстрая зарядка DC (выходные)', 'Зарядка постоянным током 50-150 кВт', 'http://127.0.0.1:9000/charging-images/images/charging_3.jpg', 15.0, 150.0, false),
+  ('AC зарядка Level 2 (будни)', 'Зарядка переменным током 22 кВт', 'http://127.0.0.1:9000/charging-images/images/charging_2.jpg', 8.0, 22.0, false),
+  ('AC зарядка Level 2 (выходные)', 'Зарядка переменным током 22 кВт', 'http://127.0.0.1:9000/charging-images/images/charging_2.jpg', 10.0, 22.0, false),
+  ('Медленная зарядка Level 1', 'Домашняя зарядка 3.7-7.4 кВт', 'http://127.0.0.1:9000/charging-images/images/charging_1.jpg', 5.0, 7.4, false),
+  ('Ультрабыстрая зарядка DC', 'Зарядка 350 кВт (Tesla Supercharger)', 'http://127.0.0.1:9000/charging-images/images/charging_4.jpg', 18.0, 350.0, false);
 
 -- заявки
 INSERT INTO charging_applications (total_price, creator_id, amount_of_orders, status)
