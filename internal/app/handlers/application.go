@@ -108,8 +108,6 @@ func (h *ChargingHandler) GetChargingApplicationById(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} domain.ChargingDraftResponse
-// @Failure 401 {object} object "Unauthorized"
-// @Failure 403 {object} object "Forbidden"
 // @Failure 500 {object} object "Internal server error"
 // @Router /chargingApplications/draft [get]
 func (h *ChargingHandler) GetDraftChargingApplication(c *gin.Context) {
@@ -118,13 +116,21 @@ func (h *ChargingHandler) GetDraftChargingApplication(c *gin.Context) {
 
 	creatorId, err := h.getCurrentUserID(c)
 	if err != nil {
-		h.ErrorHandler(c, err)
+		draft := domain.ChargingDraftResponse{
+			Id:             -1,
+			AmountOfOrders: 0,
+		}
+		c.JSON(http.StatusOK, draft)
 		return
 	}
 
 	draftApplication, err := h.chargingService.GetDraftChargingApplicationIfExist(ctx, creatorId)
 	if err != nil {
-		h.ErrorHandler(c, err)
+		draft := domain.ChargingDraftResponse{
+			Id:             -1,
+			AmountOfOrders: 0,
+		}
+		c.JSON(http.StatusOK, draft)
 		return
 	}
 

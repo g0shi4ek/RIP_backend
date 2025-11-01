@@ -31,7 +31,7 @@ type ChargingApplicationResponse struct {
 }
 
 type ChargingDraftResponse struct {
-	Id             uint                    `json:"id"`
+	Id             int                    `json:"id"`
 	AmountOfOrders uint                    `json:"amount_of_orders"`
 }
 
@@ -75,7 +75,7 @@ func (a *ChargingApplication) ToResponse() ChargingApplicationResponse {
 
 func (a *ChargingApplication) ToDraftResponse() ChargingDraftResponse {
 	return ChargingDraftResponse{
-		Id:             a.Id,
+		Id:             int(a.Id),
 		AmountOfOrders: a.AmountOfOrders,
 	}
 }
