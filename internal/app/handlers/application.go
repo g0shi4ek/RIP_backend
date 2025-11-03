@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
 	"github.com/g0shi4ek/RIP_backend/internal/pkg/helpers"
+	"github.com/g0shi4ek/RIP_backend/internal/pkg/jwt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -114,8 +116,20 @@ func (h *ChargingHandler) GetDraftChargingApplication(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
-	creatorId, err := h.getCurrentUserID(c)
+	var userId uint
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		userId = 0
+	}
+
+	token = strings.TrimPrefix(token, "Bearer ")
+	userId, _, err := jwt.ExtractUserDataFromToken(token)
 	if err != nil {
+		userId = 0
+	}
+	creatorId := userId
+	fmt.Println(creatorId)
+	if err != nil || creatorId == 0 {
 		draft := domain.ChargingDraftResponse{
 			Id:             -1,
 			AmountOfOrders: 0,

@@ -122,6 +122,7 @@ func GetCurrentUserID(c *gin.Context) (uint, error) {
 	if !ok{
 		return 0, fmt.Errorf("user id not found in context")
 	}
+	fmt.Println(userId)
 
 	id, ok := userId.(uint)
 	if !ok {
