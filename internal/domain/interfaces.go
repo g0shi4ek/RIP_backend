@@ -68,6 +68,8 @@ type IChargingService interface {
 
 	RemoveChargingOrderFromApplication(ctx context.Context, applicationId, tariffId uint) (*ChargingApplication, error)
 	UpdateChargingOrder(ctx context.Context, chargingOrder *ChargingOrder) (*ChargingOrder, error)
+	UpdateOrderCalculation(ctx context.Context, applicationId, tariffId uint, updates map[string]interface{}) error
+	UpdateApplicationTotalPrice(ctx context.Context, applicationId uint) error
 
 	RegisterChargingUser(ctx context.Context, user *User) (*User, error)
 	GetChargingUserProfile(ctx context.Context, id uint) (*User, error)
@@ -99,6 +101,7 @@ type IChargingHandler interface {
 
 	DeleteChargingOrderFromApplication(c *gin.Context) // DELETE /api/chargingOrders/:id
 	UpdateChargingOrder(c *gin.Context)                // PUT /api/chargingOrders/:id
+	UpdateOrderCalculation(c *gin.Context)
 
 	RegisterUser(c *gin.Context) // POST /api/users/register
 	GetUserById(c *gin.Context)  // GET /api/users/:userId

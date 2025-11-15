@@ -51,6 +51,7 @@ func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
 		api.GET("/tariffs", h.GetTarrifs)
 		api.GET("/tariffs/:id", h.GetChargingTarrifById)
 		api.GET("/chargingApplications/draft", h.GetDraftChargingApplication)
+		api.PUT("/chargingApplications/calculation", h.UpdateOrderCalculation)
 
 		protected := api.Group("")
 		protected.Use(h.authMiddleware.Auth())
@@ -63,7 +64,7 @@ func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
 
 			client := protected.Group("")
 			client.Use(h.authMiddleware.Role("client"))
-			{			
+			{
 				client.PUT("/chargingApplications/phone", h.UpdateChargingApplicationPhone)
 				client.PUT("/chargingApplications/form", h.UpdateChargingApplicationByCreator)
 				client.DELETE("/chargingApplications", h.DeleteChargingApplicationById)

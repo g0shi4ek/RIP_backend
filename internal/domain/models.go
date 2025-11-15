@@ -6,15 +6,16 @@ import (
 
 // M-M
 type ChargingOrder struct {
-	ApplicationId   uint                `gorm:"primaryKey;uniqueIndex:idx_order_unique" json:"application_id"`
-	TariffId        uint                `gorm:"primaryKey;uniqueIndex:idx_order_unique" json:"tariff_id"`
-	Application     ChargingApplication `gorm:"foreignKey:ApplicationId" json:"-"`
-	Tariff          ChargingTariff      `gorm:"foreignKey:TariffId" json:"tariff"`
-	BatteryCapacity float32             `gorm:"null" json:"battery_capacity,omitempty"`
-	CurrentPercent  int                 `gorm:"null" json:"current_percent,omitempty"`
-	StartTime       time.Time           `gorm:"not null;default:CURRENT_TIMESTAMP" json:"start_time"` // if night => price >
-	EstimatedTime   float32             `json:"estimated_time"`                                       // расчетное время зарядки в часах
-	CalculatedPrice float32             `json:"calculated_price"`                                     // расчетная стоимость для этой услуги
+	ApplicationId     uint                `gorm:"primaryKey;uniqueIndex:idx_order_unique" json:"application_id"`
+	TariffId          uint                `gorm:"primaryKey;uniqueIndex:idx_order_unique" json:"tariff_id"`
+	Application       ChargingApplication `gorm:"foreignKey:ApplicationId" json:"-"`
+	Tariff            ChargingTariff      `gorm:"foreignKey:TariffId" json:"tariff"`
+	BatteryCapacity   float32             `gorm:"null" json:"battery_capacity,omitempty"`
+	CurrentPercent    int                 `gorm:"null" json:"current_percent,omitempty"`
+	StartTime         time.Time           `gorm:"not null;default:CURRENT_TIMESTAMP" json:"start_time"` // if night => price >
+	EstimatedTime     float32             `json:"estimated_time"`                                       // расчетное время зарядки в часах
+	CalculatedPrice   float32             `json:"calculated_price"`                                     // расчетная стоимость для этой услуги
+	CalculationStatus string              `gorm:"type:varchar(20);default:'pending'" json:"calculation_status"`
 }
 
 // Service

@@ -60,3 +60,7 @@ func (s *ChargingService) UpdateChargingOrder(ctx context.Context, chargingOrder
 	log.Printf("charging order updated: application=%d, tariff=%d", chargingOrder.ApplicationId, chargingOrder.TariffId)
 	return updatedOrder, nil
 }
+
+func (s *ChargingService) UpdateOrderCalculation(ctx context.Context, applicationId, tariffId uint, updates map[string]interface{}) error {
+    return s.chargingRepository.UpdateChargingOrder(ctx, applicationId, tariffId, updates)
+}

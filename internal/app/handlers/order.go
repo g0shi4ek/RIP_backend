@@ -128,3 +128,50 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 		"charging_order": newChargingOrder.ToResponse(),
 	})
 }
+
+func (h *ChargingHandler) UpdateOrderCalculation(c *gin.Context) {
+	// Проверка токена
+	authToken := c.GetHeader("X-Auth-Token")
+	if authToken != "async123charging" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	var request struct {
+		ApplicationId   uint    `json:"application_id" binding:"required"`
+		TariffId        uint    `json:"tariff_id" binding:"required"`
+		EstimatedTime   float32 `json:"estimated_time"`
+		CalculatedPrice float32 `json:"calculated_price"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
+		return
+	}
+
+	// Обновляем расчет заказа
+	updates := map[string]interface{}{
+		"estimated_time":     request.EstimatedTime,
+		"calculated_price":   request.CalculatedPrice,
+		"calculation_status": "completed",
+	}
+
+	err := h.chargingService.UpdateOrderCalculation(c.Request.Context(), request.ApplicationId, request.TariffId, updates)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Update failed"})
+		return
+	}
+
+	// Обновляем общую цену заявки
+	err = h.chargingService.UpdateApplicationTotalPrice(c.Request.Context(), request.ApplicationId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update total price"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":        "Calculation updated and total price recalculated",
+		"application_id": request.ApplicationId,
+		"tariff_id":      request.TariffId,
+	})
+}

@@ -1,9 +1,13 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
@@ -48,7 +52,7 @@ func (s *ChargingService) GetChargingApplications(ctx context.Context, creatorId
 		if !endTime.IsZero() && chargingApplication.CreatedAt.After(endTime) {
 			continue
 		}
-		if userRole == "client" && chargingApplication.CreatorId != creatorId{
+		if userRole == "client" && chargingApplication.CreatorId != creatorId {
 			continue
 		}
 
@@ -173,54 +177,33 @@ func (s *ChargingService) CompleteChargingApplication(ctx context.Context, id ui
 		return nil, fmt.Errorf("can only complete formed applications")
 	}
 
-	var totalPrice float32
-
 	chargingOrders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, chargingApplication.Id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get orders for application: %v", err)
 	}
 
-	for _, chargingOrder := range *chargingOrders {
-		tariff, err := s.chargingRepository.GetTariffById(ctx, chargingOrder.TariffId)
+	for _, order := range *chargingOrders {
+		err := s.callAsyncCalculationService(order)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get tariff for order (application=%d, tariff=%d): %v", 
-				chargingOrder.ApplicationId, chargingOrder.TariffId, err)
+			log.Printf("Failed to start async calculation for order app=%d tariff=%d: %v",
+				order.ApplicationId, order.TariffId, err)
 		}
-
-		orderCost, chargingTime, err := helpers.CalculateChargingPriceForOrder(&chargingOrder, tariff)
-		if err != nil {
-			return nil, fmt.Errorf("failed to calculate price for order (application=%d, tariff=%d): %v", 
-				chargingOrder.ApplicationId, chargingOrder.TariffId, err)
-		}
-
-		orderUpdates := map[string]interface{}{
-			"estimated_time":   chargingTime,
-			"calculated_price": orderCost,
-		}
-
-		err = s.chargingRepository.UpdateChargingOrder(ctx, chargingOrder.ApplicationId, chargingOrder.TariffId, orderUpdates)
-		if err != nil {
-			return nil, fmt.Errorf("failed to update order (application=%d, tariff=%d)", 
-				chargingOrder.ApplicationId, chargingOrder.TariffId)
-		}
-
-		totalPrice += orderCost
 	}
 
 	chargingUpdates := map[string]interface{}{
 		"status":       "completed",
 		"moderator_id": moderatorId,
 		"completed_at": time.Now(),
-		"total_price":  totalPrice,
+		"total_price":  0, //  пока расчеты не завершены
 	}
+
 	err = s.chargingRepository.UpdateChargingApplication(ctx, id, chargingUpdates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to complete application: %v", err)
 	}
 
 	respApplication, _ := s.chargingRepository.GetChargingApplicationById(ctx, id)
-
-	log.Printf("completed application %d by %d", id, moderatorId)
+	log.Printf("completed application %d by %d - async calculations started", id, moderatorId)
 	return respApplication, nil
 }
 
@@ -262,5 +245,84 @@ func (s *ChargingService) DeleteChargingApplication(ctx context.Context, creator
 	}
 
 	log.Printf("application deleted: %d", chargingApplication.Id)
+	return nil
+}
+
+func (s *ChargingService) UpdateApplicationTotalPrice(ctx context.Context, applicationId uint) error {
+	orders, err := s.chargingRepository.GetChargingOrdersByApplicationId(ctx, applicationId)
+	if err != nil {
+		return fmt.Errorf("failed to get orders: %v", err)
+	}
+
+	var totalPrice float32
+	var completedCalculations int
+
+	for _, order := range *orders {
+		totalPrice += order.CalculatedPrice
+		completedCalculations++
+	}
+
+	updates := map[string]interface{}{
+		"total_price": totalPrice,
+	}
+
+	err = s.chargingRepository.UpdateChargingApplication(ctx, applicationId, updates)
+	if err != nil {
+		return fmt.Errorf("failed to update total price: %v", err)
+	}
+
+	log.Printf("Updated total price for application %d: %.2f (%d/%d calculations completed)",
+		applicationId, totalPrice, completedCalculations, len(*orders))
+
+	return nil
+}
+
+func (s *ChargingService) callAsyncCalculationService(order domain.ChargingOrder) error {
+	requestData := map[string]interface{}{
+		"application_id":   order.ApplicationId,
+		"tariff_id":        order.TariffId,
+		"battery_capacity": order.BatteryCapacity,
+		"current_percent":  order.CurrentPercent,
+		"tariff_power":     order.Tariff.Power,
+		"price_per_hour":   order.Tariff.PricePerHour,
+		"start_time":       order.StartTime.Format(time.RFC3339),
+	}
+
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request data: %v", err)
+	}
+
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	resp, err := client.Post(
+		"http://localhost:8000/api/calculate",
+		"application/json",
+		bytes.NewBuffer(jsonData),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to call Django service: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusAccepted {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("django service returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var response struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		log.Printf("Failed to decode Django response: %v", err)
+	}
+
+	log.Printf("Successfully started async calculation for order app=%d tariff=%d. Response: %s",
+		order.ApplicationId, order.TariffId, response.Message)
+
 	return nil
 }
