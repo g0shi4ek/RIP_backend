@@ -101,7 +101,7 @@ type IChargingHandler interface {
 
 	DeleteChargingOrderFromApplication(c *gin.Context) // DELETE /api/chargingOrders/:id
 	UpdateChargingOrder(c *gin.Context)                // PUT /api/chargingOrders/:id
-	UpdateOrderCalculation(c *gin.Context)
+	UpdateChargingCalculation(c *gin.Context)
 
 	RegisterUser(c *gin.Context) // POST /api/users/register
 	GetUserById(c *gin.Context)  // GET /api/users/:userId

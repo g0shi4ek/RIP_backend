@@ -129,7 +129,7 @@ func (h *ChargingHandler) UpdateChargingOrder(c *gin.Context) {
 	})
 }
 
-func (h *ChargingHandler) UpdateOrderCalculation(c *gin.Context) {
+func (h *ChargingHandler) UpdateChargingCalculation(c *gin.Context) {
 	// Проверка токена
 	authToken := c.GetHeader("X-Auth-Token")
 	if authToken != "async123charging" {

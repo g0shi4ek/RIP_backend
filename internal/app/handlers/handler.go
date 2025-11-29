@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/g0shi4ek/RIP_backend/internal/app/middleware"
 	"github.com/g0shi4ek/RIP_backend/internal/domain"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -44,6 +46,14 @@ func NewChargingHandler(serv domain.IChargingService) (*ChargingHandler, error) 
 }
 
 func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	api := r.Group("/api")
 	{
 		api.POST("/users/register", h.RegisterUser)
@@ -51,7 +61,7 @@ func (h *ChargingHandler) RegisterChargingHandler(r *gin.Engine) {
 		api.GET("/tariffs", h.GetTarrifs)
 		api.GET("/tariffs/:id", h.GetChargingTarrifById)
 		api.GET("/chargingApplications/draft", h.GetDraftChargingApplication)
-		api.PUT("/chargingApplications/calculation", h.UpdateOrderCalculation)
+		api.PUT("/chargingApplications/calculation", h.UpdateChargingCalculation)
 
 		protected := api.Group("")
 		protected.Use(h.authMiddleware.Auth())
