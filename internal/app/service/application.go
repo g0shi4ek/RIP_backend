@@ -298,7 +298,7 @@ func (s *ChargingService) callAsyncCalculationService(order domain.ChargingOrder
 	}
 
 	resp, err := client.Post(
-		"http://localhost:8000/api/calculate",
+		"http://localhost:8000/api/charging_calculate",
 		"application/json",
 		bytes.NewBuffer(jsonData),
 	)
